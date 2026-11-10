@@ -46,10 +46,10 @@ struct EncryptedVaultFile {
 #[cfg(windows)]
 mod dpapi {
     use std::ptr;
+    use windows_sys::Win32::Foundation::LocalFree;
     use windows_sys::Win32::Security::Cryptography::{
         CryptProtectData, CryptUnprotectData, CRYPTPROTECT_UI_FORBIDDEN, CRYPT_INTEGER_BLOB,
     };
-    use windows_sys::Win32::System::Memory::LocalFree;
 
     pub fn encrypt(plain: &[u8]) -> Option<Vec<u8>> {
         let mut in_blob = CRYPT_INTEGER_BLOB {

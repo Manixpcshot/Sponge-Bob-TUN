@@ -1054,8 +1054,8 @@ impl AppController {
             let mut g = self.state.lock().unwrap();
             if g.failed_in_cycle.len() >= g.vault.servers.len() {
                 g.failed_in_cycle.clear();
-                if let Some(aid) = &g.active_server_id {
-                    g.failed_in_cycle.insert(aid.clone());
+                if let Some(aid) = g.active_server_id.clone() {
+                    g.failed_in_cycle.insert(aid);
                 }
             }
             let pinned: HashSet<String> = g.vault.pinned_ids.iter().cloned().collect();
