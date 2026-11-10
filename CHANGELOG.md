@@ -1,5 +1,16 @@
 # Changelog
 
+## [v1.2.0] - 2026-11-10
+
+### Changed & Added / تغییرات و افزوده‌ها
+- **Edge Sidebar Navigation (`SideNav.tsx`):** Organized the entire interface into clean, dedicated sections along a collapsible edge sidebar (RTL right side in Persian, LTR left side in English) with live status indicators and Bikini Bottom scene previews:
+  - **Connection & Bandwidth (`اتصال و پهنای باند`):** Focused uncluttered workspace containing only the Connection Hero card (with SpongeBob's Pineapple House vignette) and expanded Live Bandwidth & Peak Traffic monitor.
+  - **Configs & Servers (`کانفیگ‌ها و سرورها`):** Dedicated section for encrypted Subscription URL vault, `.npvs`/`.txt` import & export, Mr. Krabs Quota Guard (with The Krusty Krab backdrop), Patrick Star empty-state helper, and full-height VLESS Server List.
+  - **Live Console (`کنسول زنده`):** Dedicated Squidward Control Room terminal displaying real-time sanitized Xray-core & proxy diagnostics, level filters (`All`/`Info`/`Warn`/`Error`), search, auto-scroll, copy, and clear controls.
+  - **Settings & Bikini Bottom Gallery (`تنظیمات و گالری`):** Full-section settings view featuring language/theme controls, custom mascot uploads, network/smart-fallback tuning, auto-update controls, and an interactive Bikini Bottom Artwork Gallery with lightbox preview.
+- **Title Bar (`TitleBar.tsx`):** Removed the fullscreen diagonal-arrow icon button as requested, keeping Minimize, Maximize/Restore, and Close controls pinned cleanly on the right.
+- **Expanded Bikini Bottom Artwork (`src/assets/*.webp`):** Added 5 custom WebP illustrations matching the neon-purple & golden-yellow aesthetic: SpongeBob's Pineapple House (`pineapple-house.webp`), Squidward Tentacles & Moai House (`squidward-mascot.webp`), The Krusty Krab Restaurant (`krusty-krab.webp`), Patrick Star & Rock House (`patrick-mascot.webp`), and Bikini Bottom Conch Street Panorama (`bikini-bottom-scene.webp`).
+
 ## [v1.1.0] - 2026-11-10
 
 ### Added / افزوده‌ها

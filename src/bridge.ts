@@ -235,7 +235,7 @@ function createPreviewBridge(): SpongeTunBridge {
     settings: { ...DEFAULT_PREVIEW_SETTINGS },
     updateStatus: {
       stage: 'up-to-date',
-      currentVersion: '1.1.0',
+      currentVersion: '1.2.0',
       releaseUrl: 'https://github.com/Manixpcshot/Sponge-Bob-TUN/releases',
     },
     errorMessage: null,
@@ -247,6 +247,14 @@ function createPreviewBridge(): SpongeTunBridge {
   const listeners = new Set<(s: AppSnapshot) => void>();
   const toastListeners = new Set<(t: AppToast) => void>();
   let simTimer: number | null = null;
+  let previewLogs: SafeLogEntry[] = [
+    { ts: Date.now() - 3000, level: 'info', message: 'Sponge bob tun initialized securely (preview mode)' },
+    { ts: Date.now() - 1500, level: 'info', message: 'Encrypted vault ready; 4 VLESS servers preloaded' },
+  ];
+
+  const appendLog = (level: SafeLogEntry['level'], message: string) => {
+    previewLogs = [...previewLogs.slice(-199), { ts: Date.now(), level, message }];
+  };
 
   const emit = () => listeners.forEach((cb) => cb({ ...state }));
 
@@ -256,6 +264,7 @@ function createPreviewBridge(): SpongeTunBridge {
     updateSubscription: async (url): Promise<SubscriptionImportResult> => {
       if (!url) return { ok: true, serverCount: state.servers.length };
       state = { ...state, hasSubscriptionUrl: true, maskedSubscriptionUrl: 'https://••••••••••/••••' };
+      appendLog('info', `Subscription updated (${state.servers.length} VLESS node(s))`);
       emit();
       return { ok: true, serverCount: state.servers.length };
     },
@@ -264,6 +273,7 @@ function createPreviewBridge(): SpongeTunBridge {
     exportNpvsDialog: async () => ({ ok: false, canceled: true }),
     clearSubscription: async () => {
       state = { ...state, hasSubscriptionUrl: false, maskedSubscriptionUrl: '', servers: [] };
+      appendLog('warn', 'Subscription data cleared from encrypted vault');
       emit();
       return state;
     },
@@ -285,11 +295,13 @@ function createPreviewBridge(): SpongeTunBridge {
       return state;
     },
     probeLatencies: async () => {
+      appendLog('info', `Probed latency for ${state.servers.length} server(s)`);
       emit();
     },
     connect: async (mode?: ConnectionMode, serverId?: string) => {
       if (simTimer) window.clearInterval(simTimer);
       const targetId = serverId || state.selectedServerId || state.servers[0]?.id || null;
+      const targetName = state.servers.find((s) => s.id === targetId)?.remark ?? 'Auto';
       state = {
         ...state,
         connectionMode: mode ?? state.connectionMode,
@@ -297,6 +309,7 @@ function createPreviewBridge(): SpongeTunBridge {
         activeServerId: targetId,
         connectedSince: Date.now(),
       };
+      appendLog('info', `Xray tunnel connected (${targetName}) on SOCKS5 :${state.settings.socksPort} / HTTP :${state.settings.httpPort}`);
       simTimer = window.setInterval(() => {
         const down = Math.round(350_000 + Math.random() * 1_600_000);
         const up = Math.round(70_000 + Math.random() * 320_000);
@@ -326,6 +339,7 @@ function createPreviewBridge(): SpongeTunBridge {
         connectedSince: null,
         traffic: { ...state.traffic, uploadBps: 0, downloadBps: 0 },
       };
+      appendLog('info', 'Tunnel disconnected cleanly; system proxy restored');
       emit();
     },
     updateSettings: async (patch) => {
@@ -339,10 +353,10 @@ function createPreviewBridge(): SpongeTunBridge {
       return state;
     },
     pickMascotImage: async () => ({ ok: false }),
-    getLogs: async (): Promise<SafeLogEntry[]> => [
-      { ts: Date.now(), level: 'info', message: 'Sponge bob tun initialized securely (preview mode)' },
-    ],
-    clearLogs: async () => {},
+    getLogs: async (): Promise<SafeLogEntry[]> => [...previewLogs],
+    clearLogs: async () => {
+      previewLogs = [];
+    },
     checkUpdates: async (): Promise<UpdateStatus> => state.updateStatus,
     installUpdate: async () => {},
     openGithubRepo: async () => {

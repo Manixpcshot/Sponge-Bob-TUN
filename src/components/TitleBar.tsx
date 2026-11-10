@@ -1,8 +1,6 @@
 import React from 'react';
 import {
   Github,
-  Maximize2,
-  Minimize2,
   Minus,
   Palette,
   RefreshCw,
@@ -32,7 +30,6 @@ interface TitleBarProps {
   onInstallUpdate: () => void;
   onMinimize: () => void;
   onToggleMaximize: () => void;
-  onToggleFullscreen: () => void;
   onClose: () => void;
 }
 
@@ -49,7 +46,6 @@ export const TitleBar: React.FC<TitleBarProps> = ({
   onInstallUpdate,
   onMinimize,
   onToggleMaximize,
-  onToggleFullscreen,
   onClose,
 }) => {
   const showUpdatePill =
@@ -151,7 +147,7 @@ export const TitleBar: React.FC<TitleBarProps> = ({
             <Github className="w-3.5 h-3.5" />
           </button>
 
-          {/* Settings */}
+          {/* Settings shortcut */}
           <button
             type="button"
             onClick={onOpenSettings}
@@ -193,7 +189,7 @@ export const TitleBar: React.FC<TitleBarProps> = ({
         <div data-tauri-drag-region className="flex-1 self-stretch min-w-[24px]" />
       </div>
 
-      {/* RIGHT SIDE ALWAYS (even in RTL): Minimize, Maximize/Fullscreen, Close */}
+      {/* RIGHT SIDE ALWAYS (even in RTL): Minimize, Maximize/Restore, Close (no fullscreen icon) */}
       <div
         dir="ltr"
         data-testid="window-controls-right"
@@ -215,25 +211,11 @@ export const TitleBar: React.FC<TitleBarProps> = ({
           onClick={onToggleMaximize}
           aria-label={t.maximize}
           title={t.maximize}
+          data-maximized={windowState.isMaximized ? 'true' : 'false'}
           className="w-8 h-8 rounded-lg flex items-center justify-center transition hover:bg-white/10 cursor-pointer"
           style={{ color: 'var(--text-secondary)' }}
         >
           <Square className="w-3.5 h-3.5" />
-        </button>
-
-        <button
-          type="button"
-          onClick={onToggleFullscreen}
-          aria-label={t.fullscreen}
-          title={t.fullscreen}
-          className="w-8 h-8 rounded-lg flex items-center justify-center transition hover:bg-white/10 cursor-pointer"
-          style={{ color: 'var(--text-secondary)' }}
-        >
-          {windowState.isFullScreen ? (
-            <Minimize2 className="w-3.5 h-3.5" />
-          ) : (
-            <Maximize2 className="w-3.5 h-3.5" />
-          )}
         </button>
 
         <button

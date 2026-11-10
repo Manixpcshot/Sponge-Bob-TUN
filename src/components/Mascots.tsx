@@ -3,6 +3,36 @@ import { motion } from 'framer-motion';
 import type { ConnectionState } from '../../electron/types';
 import spongeDefaultImg from '@/assets/sponge-mascot.webp';
 import crabDefaultImg from '@/assets/crab-mascot.webp';
+import pineappleHouseImg from '@/assets/pineapple-house.webp';
+import squidwardMascotImg from '@/assets/squidward-mascot.webp';
+import krustyKrabImg from '@/assets/krusty-krab.webp';
+import patrickMascotImg from '@/assets/patrick-mascot.webp';
+import bikiniBottomSceneImg from '@/assets/bikini-bottom-scene.webp';
+
+export {
+  spongeDefaultImg,
+  crabDefaultImg,
+  pineappleHouseImg,
+  squidwardMascotImg,
+  krustyKrabImg,
+  patrickMascotImg,
+  bikiniBottomSceneImg,
+};
+
+export interface BikiniBottomArtworkItem {
+  id: 'sponge' | 'pineapple' | 'squidward' | 'crab' | 'krusty' | 'patrick' | 'panorama';
+  src: string;
+}
+
+export const BIKINI_BOTTOM_ARTWORK: BikiniBottomArtworkItem[] = [
+  { id: 'pineapple', src: pineappleHouseImg },
+  { id: 'sponge', src: spongeDefaultImg },
+  { id: 'squidward', src: squidwardMascotImg },
+  { id: 'krusty', src: krustyKrabImg },
+  { id: 'crab', src: crabDefaultImg },
+  { id: 'patrick', src: patrickMascotImg },
+  { id: 'panorama', src: bikiniBottomSceneImg },
+];
 
 interface SpongeMascotProps {
   connectionState: ConnectionState;
@@ -171,5 +201,49 @@ export const CrabMascot: React.FC<CrabMascotProps> = ({ isAlert, customImageUrl 
         </motion.span>
       )}
     </div>
+  );
+};
+
+export const SquidwardMascot: React.FC<{ size?: 'sm' | 'md' | 'lg' }> = ({ size = 'md' }) => {
+  const dim = size === 'lg' ? 'w-20 h-20' : size === 'sm' ? 'w-12 h-12' : 'w-16 h-16';
+  return (
+    <motion.div
+      className={`${dim} rounded-2xl overflow-hidden shrink-0 shadow-lg`}
+      style={{
+        border: '2px solid rgba(168, 85, 247, 0.5)',
+        boxShadow: '0 0 18px rgba(168, 85, 247, 0.28)',
+      }}
+      animate={{ y: [0, -3, 0] }}
+      transition={{ duration: 3.8, repeat: Infinity, ease: 'easeInOut' }}
+    >
+      <img
+        src={squidwardMascotImg}
+        alt="Squidward Tentacles"
+        className="w-full h-full object-cover object-center"
+        draggable={false}
+      />
+    </motion.div>
+  );
+};
+
+export const PatrickMascot: React.FC<{ size?: 'sm' | 'md' | 'lg' }> = ({ size = 'md' }) => {
+  const dim = size === 'lg' ? 'w-24 h-24' : size === 'sm' ? 'w-12 h-12' : 'w-16 h-16';
+  return (
+    <motion.div
+      className={`${dim} rounded-2xl overflow-hidden shrink-0 shadow-lg`}
+      style={{
+        border: '2px solid rgba(250, 204, 21, 0.45)',
+        boxShadow: '0 0 18px rgba(250, 204, 21, 0.24)',
+      }}
+      animate={{ y: [0, -3, 0], rotate: [-1, 1, -1] }}
+      transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' }}
+    >
+      <img
+        src={patrickMascotImg}
+        alt="Patrick Star"
+        className="w-full h-full object-cover object-center"
+        draggable={false}
+      />
+    </motion.div>
   );
 };

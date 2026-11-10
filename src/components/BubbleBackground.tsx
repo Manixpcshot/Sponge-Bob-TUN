@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import type { AppTheme, ConnectionState } from '../../electron/types';
+import bikiniBottomSceneImg from '@/assets/bikini-bottom-scene.webp';
 
 interface BubbleBackgroundProps {
   theme: AppTheme;
@@ -26,6 +27,28 @@ export const BubbleBackground: React.FC<BubbleBackgroundProps> = ({ theme, conne
       className="pointer-events-none fixed inset-0 overflow-hidden z-0 sponge-texture"
       style={{ backgroundImage: 'var(--glow-hero)' }}
     >
+      {/* Subtle underwater Bikini Bottom Conch Street backdrop */}
+      <img
+        src={bikiniBottomSceneImg}
+        alt=""
+        aria-hidden="true"
+        draggable={false}
+        className="absolute inset-0 w-full h-full object-cover object-bottom transition-opacity duration-700"
+        style={{
+          opacity: theme === 'bikinibottom' ? (isConnected ? 0.22 : 0.16) : isConnected ? 0.14 : 0.09,
+          filter: 'saturate(1.15)',
+        }}
+      />
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            theme === 'bikinibottom'
+              ? 'radial-gradient(circle at 50% 35%, rgba(31,13,56,0.58) 0%, rgba(19,6,38,0.88) 100%)'
+              : 'radial-gradient(circle at 50% 35%, rgba(7,7,13,0.68) 0%, rgba(7,7,13,0.92) 100%)',
+        }}
+      />
+
       {/* Floating underwater bubbles */}
       {bubbles.map((b) => (
         <span
