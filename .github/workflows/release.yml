@@ -63,8 +63,10 @@ jobs:
           npm version $ver --no-git-tag-version --allow-same-version
 
           $tauriConf = Get-Content src-tauri/tauri.conf.json -Raw | ConvertFrom-Json
-          $tauriConf.version = $ver
-          $tauriConf | ConvertTo-Json -Depth 12 | Set-Content src-tauri/tauri.conf.json -Encoding utf8
+          if ($tauriConf.version -ne $ver) {
+            $tauriConf.version = $ver
+            $tauriConf | ConvertTo-Json -Depth 12 | Set-Content src-tauri/tauri.conf.json -Encoding utf8
+          }
 
           $cargoToml = Get-Content src-tauri/Cargo.toml -Raw
           $cargoToml = $cargoToml -replace '(?m)^version\s*=\s*"[^"]+"', "version = `"$ver`""
@@ -83,38 +85,54 @@ jobs:
       - name: Build Electron NSIS Installer & Clean Electron Portables (EXE + ZIP)
         shell: pwsh
         run: |
+          $ErrorActionPreference = "Stop"
           $ver = $env:APP_VERSION
           npx electron-builder --win nsis --x64 --publish never
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "::error::electron-builder nsis failed with exit code $LASTEXITCODE"
+            exit $LASTEXITCODE
+          }
 
-          # Prepare clean unpacked folder for Electron Portables (no app-update.yml, explicit PORTABLE_MODE.txt)
           $unpacked = "release/win-unpacked"
-          $appUpdateYml = Join-Path $unpacked "resources/app-update.yml"
+          $portableStage = "release/electron-portable-staging"
+          if (Test-Path $portableStage) { Remove-Item $portableStage -Recurse -Force }
+          Copy-Item $unpacked $portableStage -Recurse -Force
+
+          $appUpdateYml = Join-Path $portableStage "resources/app-update.yml"
           if (Test-Path $appUpdateYml) {
             Remove-Item $appUpdateYml -Force
           }
-          @"
-          Sponge bob tun Portable Mode
-          Vault & runtime data are saved next to the executable in SpongeBobTUN-Data/.
-          "@ | Set-Content (Join-Path $unpacked "PORTABLE_MODE.txt") -Encoding utf8
+          @(
+            "Sponge bob tun Portable Mode",
+            "Vault & runtime data are saved next to the executable in SpongeBobTUN-Data/."
+          ) | Set-Content (Join-Path $portableStage "PORTABLE_MODE.txt") -Encoding utf8
 
-          npx electron-builder --win portable --x64 --prepackaged $unpacked --publish never
+          npx electron-builder --win portable --x64 --prepackaged $portableStage --publish never
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "::error::electron-builder portable failed with exit code $LASTEXITCODE"
+            exit $LASTEXITCODE
+          }
 
           $zipPath = "release/Sponge-bob-tun-Electron-Portable-$ver-win-x64.zip"
           if (Test-Path $zipPath) { Remove-Item $zipPath -Force }
-          Compress-Archive -Path "$unpacked\*" -DestinationPath $zipPath -CompressionLevel Optimal
+          Compress-Archive -Path "$portableStage\*" -DestinationPath $zipPath -CompressionLevel Optimal
+          Remove-Item $portableStage -Recurse -Force
 
       - name: Build Rust + Tauri v2 Setup Installer, Portable ZIP & Single-File Portable EXE
         shell: pwsh
         run: |
+          $ErrorActionPreference = "Stop"
           $ver = $env:APP_VERSION
 
-          # 1) Build standard Tauri binary + NSIS installer
           npx tauri build --bundles nsis --ci
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "::error::tauri build nsis failed with exit code $LASTEXITCODE"
+            exit $LASTEXITCODE
+          }
           $nsisOut = Get-ChildItem "src-tauri/target/release/bundle/nsis" -Filter "*-setup.exe" | Select-Object -First 1
           if (-not $nsisOut) { throw "Tauri NSIS setup executable not generated" }
           Copy-Item $nsisOut.FullName "release/Sponge-bob-tun-Tauri-Setup-$ver.exe" -Force
 
-          # 2) Package Tauri Portable ZIP from clean non-embedded binary + resources/bin/win32
           $tauriBin = "src-tauri/target/release/sponge-bob-tun.exe"
           if (-not (Test-Path $tauriBin)) { throw "Tauri release executable missing" }
           $staging = "release/tauri-portable-staging"
@@ -122,23 +140,27 @@ jobs:
           New-Item -ItemType Directory -Path "$staging/bin/win32" -Force | Out-Null
           Copy-Item $tauriBin "$staging/Sponge bob tun.exe" -Force
           Copy-Item "resources/bin/win32/*" "$staging/bin/win32/" -Force
-          @"
-          Sponge bob tun (Rust + Tauri v2) Portable Mode
-          Encrypted vault, proxy backup, and WebView2 profile stay in SpongeBobTUN-Data/.
-          "@ | Set-Content "$staging/PORTABLE_MODE.txt" -Encoding utf8
+          @(
+            "Sponge bob tun (Rust + Tauri v2) Portable Mode",
+            "Encrypted vault, proxy backup, and WebView2 profile stay in SpongeBobTUN-Data/."
+          ) | Set-Content "$staging/PORTABLE_MODE.txt" -Encoding utf8
 
           $tauriZip = "release/Sponge-bob-tun-Tauri-Portable-$ver-win-x64.zip"
           if (Test-Path $tauriZip) { Remove-Item $tauriZip -Force }
           Compress-Archive -Path "$staging\*" -DestinationPath $tauriZip -CompressionLevel Optimal
           Remove-Item $staging -Recurse -Force
 
-          # 3) Build single-file standalone Tauri Portable EXE with embedded compressed Xray-core
           npx tauri build --no-bundle --features embed-xray --ci
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "::error::tauri build embed-xray failed with exit code $LASTEXITCODE"
+            exit $LASTEXITCODE
+          }
           Copy-Item "src-tauri/target/release/sponge-bob-tun.exe" "release/Sponge-bob-tun-Tauri-Portable-$ver.exe" -Force
 
       - name: Verify All Release Binaries & Archives
         shell: pwsh
         run: |
+          $ErrorActionPreference = "Stop"
           $ver = $env:APP_VERSION
           $expected = @(
             "Sponge-bob-tun-Setup-$ver.exe",
@@ -152,13 +174,25 @@ jobs:
           )
           foreach ($name in $expected) {
             $full = Join-Path "release" $name
-            if (-not (Test-Path $full)) { throw "Missing expected artifact: $name" }
+            if (-not (Test-Path $full)) {
+              Write-Host "::error::Missing expected artifact: $name"
+              throw "Missing expected artifact: $name"
+            }
             $item = Get-Item $full
-            if ($item.Length -eq 0) { throw "Artifact is empty: $name" }
+            if ($item.Length -eq 0) {
+              Write-Host "::error::Artifact is empty: $name"
+              throw "Artifact is empty: $name"
+            }
             if ($name.EndsWith(".exe")) {
-              if ($item.Length -lt 1000000) { throw "Executable suspiciously small: $name ($($item.Length) bytes)" }
+              if ($item.Length -lt 1000000) {
+                Write-Host "::error::Executable suspiciously small: $name"
+                throw "Executable suspiciously small: $name ($($item.Length) bytes)"
+              }
               $bytes = [System.IO.File]::ReadAllBytes($full)[0..1]
-              if ($bytes[0] -ne 0x4D -or $bytes[1] -ne 0x5A) { throw "Invalid PE MZ header: $name" }
+              if ($bytes[0] -ne 0x4D -or $bytes[1] -ne 0x5A) {
+                Write-Host "::error::Invalid PE MZ header: $name"
+                throw "Invalid PE MZ header: $name"
+              }
             }
             Write-Host ("VERIFIED: {0,-56} {1,10:N0} bytes" -f $name, $item.Length)
           }
@@ -168,6 +202,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          $ErrorActionPreference = "Stop"
           $tag = $env:RELEASE_TAG
           $ver = $env:APP_VERSION
           gh release view $tag 2>$null
@@ -185,3 +220,7 @@ jobs:
             "release/Sponge-bob-tun-Tauri-Portable-$ver-win-x64.zip"
           )
           gh release upload $tag @files --clobber
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "::error::gh release upload failed"
+            exit $LASTEXITCODE
+          }
