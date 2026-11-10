@@ -1,5 +1,21 @@
 # Changelog
 
+## [v1.1.0] - 2026-11-10
+
+### Added / افزوده‌ها
+- **Full Rust + Tauri v2 Desktop Backend (`src-tauri/`):**
+  - Complete native Rust backend achieving 100% feature parity with Electron while sharing the React UI (`src/` via `src/bridge.ts` auto-detecting Electron vs Tauri v2).
+  - Native Windows **DPAPI** (`CryptProtectData` / `CryptUnprotectData`) + AES-256-GCM encrypted vault (`secure_store.rs`).
+  - Native Windows **Registry + WinINet** (`InternetSetOptionW`) local system proxy manager with atomic backup & stale-crash recovery (`system_proxy.rs`), strictly local SOCKS5/HTTP with zero TUN/Wintun (`xray_config.rs`).
+  - Native pure-Rust HTTP/2 gRPC `StatsService/QueryStats` bandwidth monitor (`xray_stats.rs`).
+  - Native VLESS/Base64 parser (`vless_parser.rs`), `.npvs` PBKDF2-SHA256 + AES-256-GCM / OpenSSL `Salted__` codec (`npvs_codec.rs`), `SafeLogger` secret sanitizer (`log_sanitizer.rs`), `subscription.rs` with Mr. Krabs quota guard, concurrent latency probing + smart fallback (`latency.rs`), native system tray & single-instance guard (`lib.rs`).
+  - Launch-time GitHub Releases updater supporting both NSIS Setup & single-file Portable self-replacement (`updater.rs`).
+- **Bug-Free Zero-Setup Portable Editions (Both Electron & Rust/Tauri):**
+  - **Tauri Single-File Portable EXE** (`Sponge-bob-tun-Tauri-Portable-1.1.0.exe`): Built with `--features embed-xray`, embedding gzip-compressed + SHA-256-verified `xray.exe` directly inside the standalone binary and extracting/storing `SpongeBobTUN-Data/` alongside the executable (with WebView2 data directory isolation and read-only `%APPDATA%` fallback).
+  - **Tauri Portable ZIP** (`Sponge-bob-tun-Tauri-Portable-1.1.0-win-x64.zip`) & **Tauri NSIS Setup** (`Sponge-bob-tun-Tauri-Setup-1.1.0.exe`).
+  - **Electron Portable EXE** (`Sponge-bob-tun-Electron-Portable-1.1.0.exe`) & **Electron Portable ZIP** (`Sponge-bob-tun-Electron-Portable-1.1.0-win-x64.zip`): Fixed portable data directory persistence (`PORTABLE_EXECUTABLE_DIR` / `PORTABLE_MODE.txt`), disabled `app-update.yml` error loops in portable mode, and added PE-verified GitHub portable `.exe` self-updating.
+- **CI/CD Pipelines (`.github/workflows/{ci,release}.yml`):** Added Linux & Windows Rust test verification and automated multi-target Windows builds + PE binary integrity checks for all 8 release artifacts.
+
 ## [v1.0.0] - 2026-11-10
 
 ### Added / افزوده‌ها

@@ -1,3 +1,5 @@
+import { invoke } from '@tauri-apps/api/core';
+import { listen } from '@tauri-apps/api/event';
 import type { SpongeTunBridge } from '../electron/preload';
 import type {
   AppSettings,
@@ -13,7 +15,110 @@ import type {
 declare global {
   interface Window {
     spongeTun?: SpongeTunBridge;
+    __TAURI_INTERNALS__?: unknown;
   }
+}
+
+function createTauriBridge(): SpongeTunBridge {
+  return {
+    getSnapshot: () => invoke<AppSnapshot>('get_snapshot'),
+    getSubscriptionUrl: () => invoke<string>('get_subscription_url'),
+    updateSubscription: (url?: string, password?: string) =>
+      invoke<SubscriptionImportResult>('update_subscription', {
+        url: url ?? null,
+        password: password ?? null,
+      }),
+    importFileDialog: (password?: string) =>
+      invoke<SubscriptionImportResult & { canceled?: boolean }>('import_file_dialog', {
+        password: password ?? null,
+      }),
+    importRawPayload: (base64OrText: string, isBase64Bytes: boolean, password?: string) =>
+      invoke<SubscriptionImportResult>('import_raw_payload', {
+        base64OrText,
+        isBase64Bytes,
+        password: password ?? null,
+      }),
+    exportNpvsDialog: (password?: string) =>
+      invoke<{ ok: boolean; canceled?: boolean }>('export_npvs_dialog', {
+        password: password ?? null,
+      }),
+    clearSubscription: () => invoke<AppSnapshot>('clear_subscription'),
+
+    selectServer: (serverId: string | null, mode?: ConnectionMode) =>
+      invoke<AppSnapshot>('select_server', { serverId, mode: mode ?? null }),
+    togglePinServer: (serverId: string) =>
+      invoke<AppSnapshot>('toggle_pin_server', { serverId }),
+    probeLatencies: () => invoke<void>('probe_latencies'),
+
+    connect: (mode?: ConnectionMode, serverId?: string) =>
+      invoke<{ ok: boolean; error?: string }>('connect', {
+        mode: mode ?? null,
+        serverId: serverId ?? null,
+      }),
+    disconnect: () => invoke<void>('disconnect'),
+
+    updateSettings: (patch: Partial<AppSettings>) =>
+      invoke<AppSnapshot>('update_settings', { patch }),
+    pickMascotImage: (target: 'sponge' | 'crab') =>
+      invoke<{ ok: boolean; dataUrl?: string }>('pick_mascot_image', { target }),
+
+    getLogs: () => invoke<SafeLogEntry[]>('get_logs'),
+    clearLogs: () => invoke<void>('clear_logs'),
+
+    checkUpdates: () => invoke<UpdateStatus>('check_updates'),
+    installUpdate: () => invoke<void>('install_update'),
+    openGithubRepo: (subpath?: string) =>
+      invoke<void>('open_github_repo', { subpath: subpath ?? null }),
+
+    windowMinimize: () => invoke<void>('window_minimize'),
+    windowToggleMaximize: () => invoke<WindowControlsState>('window_toggle_maximize'),
+    windowToggleFullscreen: () => invoke<WindowControlsState>('window_toggle_fullscreen'),
+    windowClose: () => invoke<void>('window_close'),
+    windowGetState: () => invoke<WindowControlsState>('window_get_state'),
+
+    onSnapshot: (listener: (snapshot: AppSnapshot) => void) => {
+      let unlisten: (() => void) | null = null;
+      let disposed = false;
+      void listen<AppSnapshot>('app:snapshot', (event) => {
+        listener(event.payload);
+      }).then((fn) => {
+        if (disposed) fn();
+        else unlisten = fn;
+      });
+      return () => {
+        disposed = true;
+        unlisten?.();
+      };
+    },
+    onToast: (listener: (toast: AppToast) => void) => {
+      let unlisten: (() => void) | null = null;
+      let disposed = false;
+      void listen<AppToast>('app:toast', (event) => {
+        listener(event.payload);
+      }).then((fn) => {
+        if (disposed) fn();
+        else unlisten = fn;
+      });
+      return () => {
+        disposed = true;
+        unlisten?.();
+      };
+    },
+    onWindowState: (listener: (state: WindowControlsState) => void) => {
+      let unlisten: (() => void) | null = null;
+      let disposed = false;
+      void listen<WindowControlsState>('window:state-changed', (event) => {
+        listener(event.payload);
+      }).then((fn) => {
+        if (disposed) fn();
+        else unlisten = fn;
+      });
+      return () => {
+        disposed = true;
+        unlisten?.();
+      };
+    },
+  };
 }
 
 const DEFAULT_PREVIEW_SETTINGS: AppSettings = {
@@ -130,7 +235,7 @@ function createPreviewBridge(): SpongeTunBridge {
     settings: { ...DEFAULT_PREVIEW_SETTINGS },
     updateStatus: {
       stage: 'up-to-date',
-      currentVersion: '1.0.0',
+      currentVersion: '1.1.0',
       releaseUrl: 'https://github.com/Manixpcshot/Sponge-Bob-TUN/releases',
     },
     errorMessage: null,
@@ -263,7 +368,13 @@ function createPreviewBridge(): SpongeTunBridge {
 let cachedBridge: SpongeTunBridge | null = null;
 
 export function getSpongeBridge(): SpongeTunBridge {
-  if (window.spongeTun) return window.spongeTun;
+  if (typeof window !== 'undefined') {
+    if (window.spongeTun) return window.spongeTun;
+    if ('__TAURI_INTERNALS__' in window) {
+      if (!cachedBridge) cachedBridge = createTauriBridge();
+      return cachedBridge;
+    }
+  }
   if (!cachedBridge) cachedBridge = createPreviewBridge();
   return cachedBridge;
 }

@@ -361,6 +361,28 @@ function registerIpcHandlers(): void {
   ipcMain.handle('window:get-state', () => getWindowState(mainWindow));
 }
 
+function resolveUserDataDir(): string {
+  const exeDir = path.dirname(app.getPath('exe'));
+  const portableBaseDir =
+    process.env.PORTABLE_EXECUTABLE_DIR ||
+    (fs.existsSync(path.join(exeDir, 'PORTABLE_MODE.txt')) ? exeDir : null);
+
+  if (portableBaseDir) {
+    const candidate = path.join(portableBaseDir, 'SpongeBobTUN-Data');
+    try {
+      fs.mkdirSync(candidate, { recursive: true });
+      const probe = path.join(candidate, '.write-check');
+      fs.writeFileSync(probe, '1');
+      fs.unlinkSync(probe);
+      app.setPath('userData', candidate);
+      return candidate;
+    } catch {
+      // Fall back cleanly to %APPDATA% if portable folder is read-only
+    }
+  }
+  return app.getPath('userData');
+}
+
 const gotSingleInstanceLock = app.requestSingleInstanceLock();
 if (!gotSingleInstanceLock) {
   app.quit();
@@ -374,10 +396,11 @@ if (!gotSingleInstanceLock) {
   });
 
   app.setAppUserModelId('io.github.manixpcshot.spongebobtun');
+  const resolvedUserDataDir = resolveUserDataDir();
 
   void app.whenReady().then(async () => {
     controller = new AppController({
-      userDataDir: app.getPath('userData'),
+      userDataDir: resolvedUserDataDir,
       appRoot,
       resourcesPath: app.isPackaged ? process.resourcesPath : undefined,
       appVersion: app.getVersion(),
