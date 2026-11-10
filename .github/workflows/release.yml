@@ -94,7 +94,7 @@ jobs:
           }
 
           $unpacked = "release/win-unpacked"
-          $portableStage = "release/electron-portable-staging"
+          $portableStage = ".tmp-electron-portable"
           if (Test-Path $portableStage) { Remove-Item $portableStage -Recurse -Force }
           Copy-Item $unpacked $portableStage -Recurse -Force
 
@@ -135,7 +135,7 @@ jobs:
 
           $tauriBin = "src-tauri/target/release/sponge-bob-tun.exe"
           if (-not (Test-Path $tauriBin)) { throw "Tauri release executable missing" }
-          $staging = "release/tauri-portable-staging"
+          $staging = ".tmp-tauri-portable"
           if (Test-Path $staging) { Remove-Item $staging -Recurse -Force }
           New-Item -ItemType Directory -Path "$staging/bin/win32" -Force | Out-Null
           Copy-Item $tauriBin "$staging/Sponge bob tun.exe" -Force
