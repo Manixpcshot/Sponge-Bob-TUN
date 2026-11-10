@@ -9,18 +9,19 @@
 @import "@fontsource/inter/600.css";
 @import "@fontsource/inter/700.css";
 
+/* Night Dark Theme (تم شب تاریک) */
 :root,
 [data-theme="obsidian"] {
   --bg-app: #07070d;
   --bg-surface: rgba(16, 16, 27, 0.86);
   --bg-surface-strong: #121220;
-  --bg-elevated: rgba(25, 25, 42, 0.85);
+  --bg-elevated: rgba(25, 25, 42, 0.86);
   --bg-input: rgba(10, 10, 18, 0.9);
-  --border-subtle: rgba(168, 85, 247, 0.18);
-  --border-strong: rgba(250, 204, 21, 0.38);
+  --border-subtle: rgba(168, 85, 247, 0.22);
+  --border-strong: rgba(250, 204, 21, 0.45);
   --text-primary: #f8fafc;
   --text-secondary: #a1a1bd;
-  --text-muted: #6e6f8c;
+  --text-muted: #7b7c9c;
   --accent-yellow: #facc15;
   --accent-yellow-soft: rgba(250, 204, 21, 0.14);
   --accent-purple: #a855f7;
@@ -28,30 +29,30 @@
   --accent-purple-soft: rgba(168, 85, 247, 0.16);
   --accent-cyan: #22d3ee;
   --glow-hero: radial-gradient(circle at 50% 0%, rgba(147, 51, 234, 0.22), transparent 65%),
-    radial-gradient(circle at 85% 90%, rgba(250, 204, 21, 0.1), transparent 55%);
+    radial-gradient(circle at 85% 90%, rgba(250, 204, 21, 0.12), transparent 55%);
   --card-shadow: 0 18px 45px rgba(0, 0, 0, 0.55);
 }
 
+/* Bikini Bottom Day Sky & Houses Theme (تم روز خانه‌ها و آسمان باب‌اسفنجی) */
 [data-theme="bikinibottom"] {
-  --bg-app: #1f0d38;
-  --bg-surface: rgba(45, 20, 82, 0.88);
-  --bg-surface-strong: #31155c;
-  --bg-elevated: rgba(68, 30, 118, 0.85);
-  --bg-input: rgba(28, 11, 52, 0.92);
-  --border-subtle: rgba(250, 204, 21, 0.32);
-  --border-strong: rgba(253, 224, 71, 0.65);
-  --text-primary: #fefce8;
-  --text-secondary: #e9d5ff;
-  --text-muted: #c084fc;
+  --bg-app: #0369a1;
+  --bg-surface: rgba(6, 42, 71, 0.76);
+  --bg-surface-strong: #083457;
+  --bg-elevated: rgba(10, 58, 94, 0.78);
+  --bg-input: rgba(4, 29, 50, 0.84);
+  --border-subtle: rgba(125, 211, 252, 0.34);
+  --border-strong: rgba(253, 224, 71, 0.78);
+  --text-primary: #f8fafc;
+  --text-secondary: #cffafe;
+  --text-muted: #7dd3fc;
   --accent-yellow: #fde047;
-  --accent-yellow-soft: rgba(253, 224, 71, 0.2);
-  --accent-purple: #c084fc;
-  --accent-purple-deep: #9333ea;
-  --accent-purple-soft: rgba(192, 132, 252, 0.22);
-  --accent-cyan: #38bdf8;
-  --glow-hero: radial-gradient(circle at 20% 10%, rgba(250, 204, 21, 0.26), transparent 52%),
-    radial-gradient(circle at 80% 85%, rgba(168, 85, 247, 0.35), transparent 60%);
-  --card-shadow: 0 20px 50px rgba(17, 4, 34, 0.65);
+  --accent-yellow-soft: rgba(253, 224, 71, 0.22);
+  --accent-purple: #f472b6;
+  --accent-purple-deep: #0284c7;
+  --accent-purple-soft: rgba(244, 114, 182, 0.2);
+  --accent-cyan: #22d3ee;
+  --glow-hero: linear-gradient(180deg, rgba(14, 165, 233, 0.55) 0%, rgba(2, 132, 199, 0.45) 55%, rgba(3, 105, 161, 0.85) 100%);
+  --card-shadow: 0 18px 42px rgba(2, 44, 77, 0.45);
 }
 
 * {
@@ -92,18 +93,22 @@ textarea {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(168, 85, 247, 0.32);
+  background: rgba(168, 85, 247, 0.35);
   border-radius: 9999px;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(250, 204, 21, 0.55);
+[data-theme="bikinibottom"] ::-webkit-scrollbar-thumb {
+  background: rgba(253, 224, 71, 0.48);
 }
 
-/* Bikini bottom subtle sponge pore dot texture for yellow-purple theme */
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(250, 204, 21, 0.7);
+}
+
+/* Subtle daytime caustic dots vs night purple pattern */
 [data-theme="bikinibottom"] .sponge-texture {
-  background-image: radial-gradient(rgba(253, 224, 71, 0.08) 1.5px, transparent 1.5px);
-  background-size: 26px 26px;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.14) 1.5px, transparent 1.5px);
+  background-size: 30px 30px;
 }
 
 [data-theme="obsidian"] .sponge-texture {
@@ -117,10 +122,10 @@ textarea {
     opacity: 0;
   }
   15% {
-    opacity: 0.55;
+    opacity: 0.58;
   }
   70% {
-    opacity: 0.35;
+    opacity: 0.36;
   }
   100% {
     transform: translateY(-105vh) translateX(18px) scale(1.15);
@@ -128,8 +133,24 @@ textarea {
   }
 }
 
+@keyframes flowerCloudDrift {
+  0% {
+    transform: translateX(-12%) translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateX(6%) translateY(-6px) rotate(6deg);
+  }
+  100% {
+    transform: translateX(-12%) translateY(0px) rotate(0deg);
+  }
+}
+
 .bubble-anim {
   animation: bubbleRise linear infinite;
+}
+
+.flower-cloud-anim {
+  animation: flowerCloudDrift ease-in-out infinite;
 }
 
 .drag-region {

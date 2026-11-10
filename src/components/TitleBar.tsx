@@ -2,10 +2,11 @@ import React from 'react';
 import {
   Github,
   Minus,
-  Palette,
+  Moon,
   RefreshCw,
   Settings,
   Square,
+  Sun,
   X,
 } from 'lucide-react';
 import type {
@@ -52,6 +53,8 @@ export const TitleBar: React.FC<TitleBarProps> = ({
     updateStatus.stage === 'available' ||
     updateStatus.stage === 'downloading' ||
     updateStatus.stage === 'downloaded';
+
+  const isDay = theme === 'bikinibottom';
 
   return (
     <header
@@ -111,24 +114,27 @@ export const TitleBar: React.FC<TitleBarProps> = ({
             {language === 'fa' ? 'EN | فارسی' : 'FA | English'}
           </button>
 
-          {/* Theme switcher (Obsidian Dark vs SpongeBob Yellow/Purple) */}
+          {/* Day Houses vs Dark Night Theme switcher */}
           <button
             type="button"
             onClick={onToggleTheme}
             className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-semibold transition hover:scale-105 cursor-pointer"
             style={{
-              backgroundColor:
-                theme === 'bikinibottom'
-                  ? 'var(--accent-yellow-soft)'
-                  : 'var(--bg-elevated)',
+              backgroundColor: isDay
+                ? 'var(--accent-yellow-soft)'
+                : 'var(--bg-elevated)',
               border: '1px solid var(--border-subtle)',
-              color: theme === 'bikinibottom' ? 'var(--accent-yellow)' : 'var(--text-secondary)',
+              color: isDay ? 'var(--accent-yellow)' : 'var(--text-secondary)',
             }}
-            title={theme === 'obsidian' ? t.themeBikini : t.themeObsidian}
+            title={isDay ? t.themeObsidian : t.themeBikini}
           >
-            <Palette className="w-3.5 h-3.5" />
+            {isDay ? (
+              <Sun className="w-3.5 h-3.5 text-yellow-300" />
+            ) : (
+              <Moon className="w-3.5 h-3.5 text-purple-300" />
+            )}
             <span className="hidden md:inline">
-              {theme === 'obsidian' ? t.themeObsidian : t.themeBikini}
+              {isDay ? t.themeBikini : t.themeObsidian}
             </span>
           </button>
 
