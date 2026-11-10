@@ -45,7 +45,41 @@ jobs:
         env:
           ELECTRON_SKIP_BINARY_DOWNLOAD: "1"
       - run: npm run build:renderer
-      - run: cargo test --manifest-path src-tauri/Cargo.toml
+      - name: Run Rust unit tests & annotate diagnostics
+        shell: bash
+        run: |
+          set +e
+          cargo test --manifest-path src-tauri/Cargo.toml --message-format=json > /tmp/cargo-out.txt 2> /tmp/cargo-err.txt
+          code=$?
+          python3 -c '
+          import json
+          for path in ("/tmp/cargo-out.txt", "/tmp/cargo-err.txt"):
+              with open(path, errors="replace") as f:
+                  for line in f:
+                      s = line.strip()
+                      if s.startswith("{"):
+                          try:
+                              obj = json.loads(s)
+                              if obj.get("reason") == "compiler-message":
+                                  msg = obj.get("message", {})
+                                  if msg.get("level") in ("error", "failure-note"):
+                                      spans = msg.get("spans") or []
+                                      loc = f"file={spans[0][\"file_name\"]},line={spans[0][\"line_start\"]}::" if spans else "::"
+                                      rendered = (msg.get("rendered") or msg.get("message") or "").replace("\n", " | ")[:400]
+                                      print(f"::error {loc}{rendered}")
+                                      print(msg.get("rendered") or msg.get("message"))
+                                  continue
+                          except Exception:
+                              pass
+                      if s:
+                          print(s)
+          '
+          if [ $code -ne 0 ]; then
+              tail -n 30 /tmp/cargo-err.txt | while IFS= read -r line; do
+                  [ -n "$line" ] && echo "::error::$line"
+              done
+          fi
+          exit $code
 
   verify-rust-windows:
     runs-on: windows-latest
@@ -63,4 +97,39 @@ jobs:
         env:
           ELECTRON_SKIP_BINARY_DOWNLOAD: "1"
       - run: npm run build:renderer
-      - run: cargo test --manifest-path src-tauri/Cargo.toml
+      - name: Run Rust unit tests on Windows & annotate diagnostics
+        shell: pwsh
+        run: |
+          $outFile = "$env:TEMP\cargo-out.txt"
+          $errFile = "$env:TEMP\cargo-err.txt"
+          cargo test --manifest-path src-tauri/Cargo.toml --message-format=json > $outFile 2> $errFile
+          $code = $LASTEXITCODE
+          foreach ($line in Get-Content $outFile -ErrorAction SilentlyContinue) {
+            if ($line.TrimStart().StartsWith("{")) {
+              try {
+                $obj = $line | ConvertFrom-Json
+                if ($obj.reason -eq "compiler-message" -and $obj.message.level -in @("error", "failure-note")) {
+                  $spans = $obj.message.spans
+                  $loc = if ($spans -and $spans.Count -gt 0) { "file=$($spans[0].file_name),line=$($spans[0].line_start)::" } else { "::" }
+                  $txt = (($obj.message.rendered ?? $obj.message.message) -replace "`r?`n", " | ")
+                  if ($txt.Length -gt 400) { $txt = $txt.Substring(0, 400) }
+                  Write-Host "::error $loc$txt"
+                  Write-Host ($obj.message.rendered ?? $obj.message.message)
+                }
+              } catch {
+                Write-Host $line
+              }
+            } else {
+              Write-Host $line
+            }
+          }
+          if (Test-Path $errFile) {
+            $errLines = Get-Content $errFile
+            $errLines | ForEach-Object { Write-Host $_ }
+            if ($code -ne 0) {
+              $errLines | Select-Object -Last 20 | ForEach-Object {
+                if ($_.Trim()) { Write-Host "::error::$_" }
+              }
+            }
+          }
+          exit $code
