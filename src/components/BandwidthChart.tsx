@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Activity, ArrowDown, ArrowUp } from 'lucide-react';
+import { Activity, ArrowDown, ArrowUp, TrendingUp } from 'lucide-react';
 import type { BandwidthPoint, ConnectionState, TrafficStatsSnapshot } from '../../electron/types';
 import { formatBytes, formatSpeed } from '../i18n';
 import type { TranslationKeys } from '../i18n/fa';
@@ -30,9 +30,9 @@ export const BandwidthChart: React.FC<BandwidthChartProps> = ({
   traffic,
   connectionState,
 }) => {
-  const width = 460;
-  const height = 112;
-  const padY = 10;
+  const width = 680;
+  const height = 210;
+  const padY = 14;
 
   const { downLine, downArea, upLine, upArea } = useMemo(() => {
     const raw: BandwidthPoint[] =
@@ -74,62 +74,79 @@ export const BandwidthChart: React.FC<BandwidthChartProps> = ({
 
   return (
     <section
-      className="rounded-2xl p-4 border backdrop-blur-xl flex flex-col justify-between"
+      className="flex-1 min-h-0 rounded-2xl p-5 border backdrop-blur-xl flex flex-col justify-between gap-4 overflow-hidden"
       style={{
         backgroundColor: 'var(--bg-surface)',
         borderColor: 'var(--border-subtle)',
         boxShadow: 'var(--card-shadow)',
       }}
     >
-      <div className="flex items-center justify-between gap-2 mb-3">
-        <div className="flex items-center gap-2">
+      {/* Header with Live Speed Readouts */}
+      <div className="flex flex-wrap items-center justify-between gap-3 shrink-0">
+        <div className="flex items-center gap-2.5">
           <div
-            className="w-8 h-8 rounded-xl flex items-center justify-center"
+            className="w-9 h-9 rounded-xl flex items-center justify-center"
             style={{
               backgroundColor: 'var(--accent-purple-soft)',
               color: 'var(--accent-purple)',
             }}
           >
-            <Activity className="w-4 h-4" />
+            <Activity className="w-4.5 h-4.5" />
           </div>
-          <h3 className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>
+          <h3 className="text-sm sm:text-base font-extrabold" style={{ color: 'var(--text-primary)' }}>
             {t.bandwidth.title}
           </h3>
         </div>
 
-        <div className="flex items-center gap-3 text-xs font-mono" dir="ltr">
-          <span className="inline-flex items-center gap-1 font-bold text-purple-300">
-            <ArrowDown className="w-3.5 h-3.5 text-purple-400" />
-            {formatSpeed(traffic.downloadBps, isFa)}
-          </span>
-          <span className="inline-flex items-center gap-1 font-bold" style={{ color: 'var(--accent-yellow)' }}>
-            <ArrowUp className="w-3.5 h-3.5" />
-            {formatSpeed(traffic.uploadBps, isFa)}
-          </span>
+        <div className="flex flex-wrap items-center gap-3 text-xs sm:text-sm font-mono" dir="ltr">
+          <div
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border"
+            style={{
+              backgroundColor: 'rgba(168, 85, 247, 0.12)',
+              borderColor: 'rgba(168, 85, 247, 0.35)',
+            }}
+          >
+            <ArrowDown className="w-4 h-4 text-purple-400" />
+            <span className="font-extrabold text-purple-200">
+              {formatSpeed(traffic.downloadBps, isFa)}
+            </span>
+          </div>
+
+          <div
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border"
+            style={{
+              backgroundColor: 'var(--accent-yellow-soft)',
+              borderColor: 'rgba(250, 204, 21, 0.35)',
+            }}
+          >
+            <ArrowUp className="w-4 h-4" style={{ color: 'var(--accent-yellow)' }} />
+            <span className="font-extrabold" style={{ color: 'var(--accent-yellow)' }}>
+              {formatSpeed(traffic.uploadBps, isFa)}
+            </span>
+          </div>
         </div>
       </div>
 
       {/* Live SVG Area Chart */}
       <div
-        className="relative rounded-xl overflow-hidden border px-1 pt-1"
+        className="relative flex-1 min-h-[150px] rounded-2xl overflow-hidden border px-1 pt-2 flex items-end"
         style={{
           backgroundColor: 'var(--bg-input)',
           borderColor: 'var(--border-subtle)',
         }}
       >
-        <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-28 block">
+        <svg viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" className="w-full h-full block">
           <defs>
             <linearGradient id="downFill" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#A855F7" stopOpacity="0.48" />
+              <stop offset="0%" stopColor="#A855F7" stopOpacity="0.52" />
               <stop offset="100%" stopColor="#A855F7" stopOpacity="0.02" />
             </linearGradient>
             <linearGradient id="upFill" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#FACC15" stopOpacity="0.38" />
+              <stop offset="0%" stopColor="#FACC15" stopOpacity="0.42" />
               <stop offset="100%" stopColor="#FACC15" stopOpacity="0.01" />
             </linearGradient>
           </defs>
 
-          {/* Subtle grid lines */}
           {[0.25, 0.5, 0.75].map((ratio) => (
             <line
               key={ratio}
@@ -145,16 +162,16 @@ export const BandwidthChart: React.FC<BandwidthChartProps> = ({
           {downArea && <path d={downArea} fill="url(#downFill)" />}
           {upArea && <path d={upArea} fill="url(#upFill)" />}
           {downLine && (
-            <path d={downLine} fill="none" stroke="#C084FC" strokeWidth="2.4" strokeLinecap="round" />
+            <path d={downLine} fill="none" stroke="#C084FC" strokeWidth="2.6" strokeLinecap="round" />
           )}
           {upLine && (
-            <path d={upLine} fill="none" stroke="#FACC15" strokeWidth="2" strokeLinecap="round" />
+            <path d={upLine} fill="none" stroke="#FACC15" strokeWidth="2.2" strokeLinecap="round" />
           )}
         </svg>
 
         {connectionState !== 'connected' && traffic.history.length === 0 && (
           <div
-            className="absolute inset-0 flex items-center justify-center text-xs font-medium pointer-events-none"
+            className="absolute inset-0 flex items-center justify-center text-xs sm:text-sm font-medium pointer-events-none px-4 text-center"
             style={{ color: 'var(--text-muted)' }}
           >
             {t.bandwidth.waiting}
@@ -162,41 +179,67 @@ export const BandwidthChart: React.FC<BandwidthChartProps> = ({
         )}
       </div>
 
-      {/* Session byte counters */}
-      <div className="grid grid-cols-3 gap-2 mt-3">
+      {/* Session & Peak Stat Cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 shrink-0">
         <div
-          className="rounded-xl px-2.5 py-2 border"
+          className="rounded-xl px-3 py-2.5 border"
           style={{ backgroundColor: 'var(--bg-elevated)', borderColor: 'var(--border-subtle)' }}
         >
-          <div className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
+          <div className="text-[11px]" style={{ color: 'var(--text-muted)' }}>
             {t.bandwidth.sessionDown}
           </div>
-          <div className="text-xs font-mono font-bold text-purple-300 mt-0.5" dir="ltr">
+          <div className="text-sm font-mono font-extrabold text-purple-300 mt-0.5" dir="ltr">
             {formatBytes(traffic.sessionDownloadBytes, isFa)}
           </div>
         </div>
 
         <div
-          className="rounded-xl px-2.5 py-2 border"
+          className="rounded-xl px-3 py-2.5 border"
           style={{ backgroundColor: 'var(--bg-elevated)', borderColor: 'var(--border-subtle)' }}
         >
-          <div className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
+          <div className="text-[11px]" style={{ color: 'var(--text-muted)' }}>
             {t.bandwidth.sessionUp}
           </div>
-          <div className="text-xs font-mono font-bold mt-0.5" style={{ color: 'var(--accent-yellow)' }} dir="ltr">
+          <div className="text-sm font-mono font-extrabold mt-0.5" style={{ color: 'var(--accent-yellow)' }} dir="ltr">
             {formatBytes(traffic.sessionUploadBytes, isFa)}
           </div>
         </div>
 
         <div
-          className="rounded-xl px-2.5 py-2 border"
+          className="rounded-xl px-3 py-2.5 border"
           style={{ backgroundColor: 'var(--bg-elevated)', borderColor: 'var(--border-subtle)' }}
         >
-          <div className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
+          <div className="text-[11px]" style={{ color: 'var(--text-muted)' }}>
             {t.bandwidth.sessionTotal}
           </div>
-          <div className="text-xs font-mono font-bold mt-0.5" style={{ color: 'var(--text-primary)' }} dir="ltr">
+          <div className="text-sm font-mono font-extrabold mt-0.5" style={{ color: 'var(--text-primary)' }} dir="ltr">
             {formatBytes(sessionTotal, isFa)}
+          </div>
+        </div>
+
+        <div
+          className="rounded-xl px-3 py-2.5 border"
+          style={{ backgroundColor: 'var(--bg-elevated)', borderColor: 'var(--border-subtle)' }}
+        >
+          <div className="text-[11px] flex items-center gap-1" style={{ color: 'var(--text-muted)' }}>
+            <TrendingUp className="w-3 h-3 text-purple-400" />
+            <span>{t.bandwidth.peakDown}</span>
+          </div>
+          <div className="text-sm font-mono font-extrabold text-purple-200 mt-0.5" dir="ltr">
+            {formatSpeed(traffic.peakDownloadBps, isFa)}
+          </div>
+        </div>
+
+        <div
+          className="col-span-2 sm:col-span-1 rounded-xl px-3 py-2.5 border"
+          style={{ backgroundColor: 'var(--bg-elevated)', borderColor: 'var(--border-subtle)' }}
+        >
+          <div className="text-[11px] flex items-center gap-1" style={{ color: 'var(--text-muted)' }}>
+            <TrendingUp className="w-3 h-3" style={{ color: 'var(--accent-yellow)' }} />
+            <span>{t.bandwidth.peakUp}</span>
+          </div>
+          <div className="text-sm font-mono font-extrabold mt-0.5" style={{ color: 'var(--accent-yellow)' }} dir="ltr">
+            {formatSpeed(traffic.peakUploadBps, isFa)}
           </div>
         </div>
       </div>

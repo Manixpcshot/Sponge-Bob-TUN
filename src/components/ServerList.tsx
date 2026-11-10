@@ -12,6 +12,7 @@ import {
 import type { ConnectionMode, ConnectionState, PublicServerInfo } from '../../electron/types';
 import type { TranslationKeys } from '../i18n/fa';
 import { CountryFlag } from './CountryFlag';
+import { PatrickMascot } from './Mascots';
 
 interface ServerListProps {
   t: TranslationKeys;
@@ -261,11 +262,14 @@ export const ServerList: React.FC<ServerListProps> = ({
 
         {/* Empty / No match states */}
         {servers.length === 0 ? (
-          <div
-            className="py-12 text-center text-xs sm:text-sm"
-            style={{ color: 'var(--text-muted)' }}
-          >
-            {t.servers.empty}
+          <div className="py-10 px-4 flex flex-col items-center justify-center text-center gap-3">
+            <PatrickMascot size="lg" />
+            <div className="text-sm font-extrabold" style={{ color: 'var(--accent-yellow)' }}>
+              {t.subscription.patrickEmptyTitle}
+            </div>
+            <div className="text-xs max-w-md" style={{ color: 'var(--text-muted)' }}>
+              {t.subscription.patrickEmptyDesc}
+            </div>
           </div>
         ) : sortedServers.length === 0 ? (
           <div

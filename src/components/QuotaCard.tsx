@@ -3,7 +3,7 @@ import { AlertCircle, Clock, HardDrive } from 'lucide-react';
 import type { AppSettings, QuotaAlertState, SubscriptionUserInfo } from '../../electron/types';
 import { formatBytes } from '../i18n';
 import type { TranslationKeys } from '../i18n/fa';
-import { CrabMascot } from './Mascots';
+import { CrabMascot, krustyKrabImg } from './Mascots';
 
 interface QuotaCardProps {
   t: TranslationKeys;
@@ -28,14 +28,30 @@ export const QuotaCard: React.FC<QuotaCardProps> = ({
 
   return (
     <section
-      className="rounded-2xl p-4 border backdrop-blur-xl flex flex-col justify-between transition-all"
+      className="relative overflow-hidden rounded-2xl p-4 border backdrop-blur-xl flex flex-col justify-between transition-all"
       style={{
         backgroundColor: 'var(--bg-surface)',
         borderColor: isAlert ? '#F59E0B' : 'var(--border-subtle)',
         boxShadow: isAlert ? '0 0 28px rgba(245, 158, 11, 0.2)' : 'var(--card-shadow)',
       }}
     >
-      <div className="flex items-start justify-between gap-3">
+      {/* Subtle Krusty Krab Restaurant backdrop */}
+      <img
+        src={krustyKrabImg}
+        alt=""
+        aria-hidden="true"
+        draggable={false}
+        className="pointer-events-none absolute inset-0 w-full h-full object-cover opacity-20"
+      />
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background:
+            'linear-gradient(180deg, rgba(16,16,27,0.72) 0%, rgba(16,16,27,0.92) 100%)',
+        }}
+      />
+
+      <div className="relative z-10 flex items-start justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">
           <CrabMascot
             isAlert={isAlert}
@@ -45,6 +61,9 @@ export const QuotaCard: React.FC<QuotaCardProps> = ({
             <h3 className="text-sm font-bold truncate" style={{ color: 'var(--text-primary)' }}>
               {t.quota.title}
             </h3>
+            <p className="text-[10px] truncate mt-0.5" style={{ color: 'var(--text-muted)' }}>
+              {t.quota.krustySubtitle}
+            </p>
             {userInfo?.profileTitle && (
               <p className="text-xs font-semibold truncate mt-0.5" style={{ color: 'var(--accent-yellow)' }}>
                 {userInfo.profileTitle}
@@ -81,7 +100,7 @@ export const QuotaCard: React.FC<QuotaCardProps> = ({
       </div>
 
       {/* Progress bar */}
-      <div className="mt-4">
+      <div className="relative z-10 mt-4">
         <div className="flex items-center justify-between text-[11px] mb-1.5">
           <span className="flex items-center gap-1" style={{ color: 'var(--text-secondary)' }}>
             <HardDrive className="w-3.5 h-3.5" />
@@ -110,7 +129,7 @@ export const QuotaCard: React.FC<QuotaCardProps> = ({
 
       {/* Alert notice when >= 80% or < 3 days */}
       {isAlert && (
-        <div className="mt-3 rounded-xl px-3 py-2 text-xs font-semibold flex items-center gap-2 bg-amber-500/15 text-amber-200 border border-amber-500/35">
+        <div className="relative z-10 mt-3 rounded-xl px-3 py-2 text-xs font-semibold flex items-center gap-2 bg-amber-500/15 text-amber-200 border border-amber-500/35">
           <AlertCircle className="w-4 h-4 text-amber-400 shrink-0" />
           <span>
             {quotaAlert?.isExpired

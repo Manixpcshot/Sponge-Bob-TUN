@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   AlertTriangle,
+  ArrowRight,
   Power,
   Shield,
   Sparkles,
@@ -16,7 +17,7 @@ import type {
 } from '../../electron/types';
 import type { TranslationKeys } from '../i18n/fa';
 import { CountryFlag } from './CountryFlag';
-import { SpongeMascot } from './Mascots';
+import { SpongeMascot, pineappleHouseImg } from './Mascots';
 
 interface ConnectionHeroProps {
   t: TranslationKeys;
@@ -25,12 +26,14 @@ interface ConnectionHeroProps {
   connectionMode: ConnectionMode;
   activeServer: PublicServerInfo | null;
   selectedServer: PublicServerInfo | null;
+  hasServers: boolean;
   settings: AppSettings;
   connectedSince: number | null;
   errorMessage: string | null;
   xrayAvailable: boolean;
   onConnect: () => Promise<void>;
   onDisconnect: () => Promise<void>;
+  onGoToConfigs: () => void;
 }
 
 function formatDuration(ms: number): string {
@@ -48,12 +51,14 @@ export const ConnectionHero: React.FC<ConnectionHeroProps> = ({
   connectionMode,
   activeServer,
   selectedServer,
+  hasServers,
   settings,
   connectedSince,
   errorMessage,
   xrayAvailable,
   onConnect,
   onDisconnect,
+  onGoToConfigs,
 }) => {
   const [elapsed, setElapsed] = useState('00:00:00');
 
@@ -94,24 +99,38 @@ export const ConnectionHero: React.FC<ConnectionHeroProps> = ({
 
   return (
     <section
-      className="relative overflow-hidden rounded-2xl p-5 border backdrop-blur-xl transition-all"
+      className="relative overflow-hidden rounded-2xl p-4 md:p-5 border backdrop-blur-xl transition-all shrink-0"
       style={{
         backgroundColor: 'var(--bg-surface)',
         borderColor: isConnected ? 'var(--border-strong)' : 'var(--border-subtle)',
         boxShadow: 'var(--card-shadow)',
       }}
     >
-      <div className="flex flex-col md:flex-row items-center justify-between gap-5">
-        {/* Left/Start: SpongeBob Animated Mascot + Status */}
-        <div className="flex items-center gap-4">
+      {/* SpongeBob's Pineapple House subtle atmospheric artwork backdrop */}
+      <img
+        src={pineappleHouseImg}
+        alt=""
+        aria-hidden="true"
+        draggable={false}
+        className="pointer-events-none absolute inset-y-0 end-0 w-96 h-full object-cover transition-opacity duration-500"
+        style={{
+          opacity: isConnected ? 0.32 : 0.2,
+          maskImage: 'linear-gradient(to left, rgba(0,0,0,0.92), transparent)',
+          WebkitMaskImage: 'linear-gradient(to left, rgba(0,0,0,0.92), transparent)',
+        }}
+      />
+
+      <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
+        {/* Start side: SpongeBob Animated Mascot + Status */}
+        <div className="flex flex-col sm:flex-row items-center gap-5 text-center sm:text-start">
           <SpongeMascot
             connectionState={connectionState}
             customImageUrl={settings.customSpongeMascotDataUrl}
           />
 
-          <div className="space-y-2">
+          <div className="space-y-2.5">
             {/* Status pill */}
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
               <span
                 className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold"
                 style={{
@@ -140,13 +159,13 @@ export const ConnectionHero: React.FC<ConnectionHeroProps> = ({
             </div>
 
             {/* Active / Selected Server summary */}
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center justify-center sm:justify-start gap-2.5">
               {displayServer ? (
                 <>
-                  <CountryFlag code={displayServer.countryCode} size={24} />
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-base" style={{ color: 'var(--text-primary)' }}>
+                  <CountryFlag code={displayServer.countryCode} size={26} />
+                  <div className="text-start">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="font-extrabold text-base sm:text-lg" style={{ color: 'var(--text-primary)' }}>
                         {displayServer.remark}
                       </span>
                       {connectionMode === 'auto' && (
@@ -180,15 +199,34 @@ export const ConnectionHero: React.FC<ConnectionHeroProps> = ({
                   </div>
                 </>
               ) : (
-                <div className="text-sm font-medium" style={{ color: 'var(--text-muted)' }}>
-                  {connectionMode === 'auto' ? t.connection.autoModeTitle : t.connection.noServerSelected}
+                <div className="flex flex-wrap items-center gap-2.5">
+                  <span className="text-sm font-medium" style={{ color: 'var(--text-muted)' }}>
+                    {connectionMode === 'auto' && hasServers
+                      ? t.connection.autoModeTitle
+                      : t.connection.noServerSelected}
+                  </span>
+                  {!hasServers && (
+                    <button
+                      type="button"
+                      onClick={onGoToConfigs}
+                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold cursor-pointer transition hover:scale-105"
+                      style={{
+                        backgroundColor: 'var(--accent-yellow-soft)',
+                        color: 'var(--accent-yellow)',
+                        border: '1px solid var(--border-strong)',
+                      }}
+                    >
+                      <span>{t.connection.addFirstConfigBtn}</span>
+                      <ArrowRight className={`w-3.5 h-3.5 ${isFa ? 'rotate-180' : ''}`} />
+                    </button>
+                  )}
                 </div>
               )}
             </div>
 
             {/* Local proxy endpoints + session uptime */}
             <div
-              className="flex flex-wrap items-center gap-3 text-[11px] pt-1"
+              className="flex flex-wrap items-center justify-center sm:justify-start gap-3 text-[11px] pt-1"
               style={{ color: 'var(--text-muted)' }}
             >
               <span className="inline-flex items-center gap-1 font-mono" dir="ltr">
@@ -217,7 +255,7 @@ export const ConnectionHero: React.FC<ConnectionHeroProps> = ({
           </div>
         </div>
 
-        {/* Right/End: Big Interactive Connect / Disconnect Power Button */}
+        {/* End side: Big Interactive Connect / Disconnect Power Button */}
         <div className="flex flex-col items-center gap-2 shrink-0">
           <motion.button
             type="button"
@@ -225,7 +263,7 @@ export const ConnectionHero: React.FC<ConnectionHeroProps> = ({
             whileTap={{ scale: 0.96 }}
             disabled={isBusy}
             onClick={() => (isConnected ? void onDisconnect() : void onConnect())}
-            className="relative group w-44 h-14 rounded-2xl font-extrabold text-sm flex items-center justify-center gap-2.5 transition cursor-pointer disabled:opacity-60"
+            className="relative group w-48 h-14 rounded-2xl font-extrabold text-sm flex items-center justify-center gap-2.5 transition cursor-pointer disabled:opacity-60"
             style={{
               background: isConnected
                 ? 'linear-gradient(135deg, #e11d48, #be123c)'
@@ -254,14 +292,14 @@ export const ConnectionHero: React.FC<ConnectionHeroProps> = ({
 
       {/* Warning if Xray core missing or connection error */}
       {!xrayAvailable && (
-        <div className="mt-3 rounded-xl px-3.5 py-2.5 text-xs flex items-center gap-2 bg-amber-500/15 text-amber-300 border border-amber-500/30">
+        <div className="relative z-10 mt-3 rounded-xl px-3.5 py-2.5 text-xs flex items-center gap-2 bg-amber-500/15 text-amber-300 border border-amber-500/30">
           <AlertTriangle className="w-4 h-4 shrink-0" />
           <span>{t.connection.xrayMissingWarning}</span>
         </div>
       )}
 
       {errorMessage && (
-        <div className="mt-3 rounded-xl px-3.5 py-2.5 text-xs flex items-center gap-2 bg-rose-500/15 text-rose-300 border border-rose-500/35">
+        <div className="relative z-10 mt-3 rounded-xl px-3.5 py-2.5 text-xs flex items-center gap-2 bg-rose-500/15 text-rose-300 border border-rose-500/35">
           <AlertTriangle className="w-4 h-4 shrink-0" />
           <span>{errorMessage}</span>
         </div>
