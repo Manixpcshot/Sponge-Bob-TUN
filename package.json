@@ -1,6 +1,6 @@
 {
   "name": "sponge-bob-tun",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "Sponge bob tun (باب اسفنجی) — Modern bilingual Persian/English Windows VLESS Xray local proxy desktop client (Electron & Rust/Tauri v2)",
   "author": "Manixpcshot",
   "license": "MIT",

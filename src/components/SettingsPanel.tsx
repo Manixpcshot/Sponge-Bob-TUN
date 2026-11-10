@@ -3,9 +3,11 @@ import { AnimatePresence, motion } from 'framer-motion';
 import {
   ExternalLink,
   ImagePlus,
+  Moon,
   RefreshCw,
   RotateCcw,
   Sparkles,
+  Sun,
   X,
 } from 'lucide-react';
 import type { AppSettings, UpdateStatus } from '../../electron/types';
@@ -41,6 +43,14 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
 
   const getArtworkTitle = (id: BikiniBottomArtworkItem['id']): string => {
     switch (id) {
+      case 'sky':
+        return t.gallery.skyTitle;
+      case 'dayPanorama':
+        return t.gallery.dayPanoramaTitle;
+      case 'jellyfish':
+        return t.gallery.jellyfishTitle;
+      case 'krabbyPatty':
+        return t.gallery.krabbyPattyTitle;
       case 'sponge':
         return t.gallery.spongeTitle;
       case 'pineapple':
@@ -169,7 +179,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
                   <button
                     type="button"
                     onClick={() => void onUpdateSettings({ theme: 'obsidian' })}
-                    className="flex-1 py-2 rounded-xl text-xs font-bold cursor-pointer border"
+                    className="flex-1 py-2 px-2 rounded-xl text-xs font-bold cursor-pointer border flex items-center justify-center gap-1.5"
                     style={{
                       backgroundColor:
                         settings.theme === 'obsidian' ? 'var(--accent-purple)' : 'var(--bg-input)',
@@ -177,12 +187,13 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
                       borderColor: 'var(--border-subtle)',
                     }}
                   >
-                    {t.themeObsidian}
+                    <Moon className="w-3.5 h-3.5" />
+                    <span>{t.themeObsidian}</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => void onUpdateSettings({ theme: 'bikinibottom' })}
-                    className="flex-1 py-2 rounded-xl text-xs font-bold cursor-pointer border"
+                    className="flex-1 py-2 px-2 rounded-xl text-xs font-bold cursor-pointer border flex items-center justify-center gap-1.5"
                     style={{
                       backgroundColor:
                         settings.theme === 'bikinibottom' ? 'var(--accent-yellow)' : 'var(--bg-input)',
@@ -190,7 +201,8 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
                       borderColor: 'var(--border-subtle)',
                     }}
                   >
-                    {t.themeBikini}
+                    <Sun className="w-3.5 h-3.5" />
+                    <span>{t.themeBikini}</span>
                   </button>
                 </div>
               </div>

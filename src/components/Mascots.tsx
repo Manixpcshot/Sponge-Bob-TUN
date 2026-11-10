@@ -8,6 +8,10 @@ import squidwardMascotImg from '@/assets/squidward-mascot.webp';
 import krustyKrabImg from '@/assets/krusty-krab.webp';
 import patrickMascotImg from '@/assets/patrick-mascot.webp';
 import bikiniBottomSceneImg from '@/assets/bikini-bottom-scene.webp';
+import bikiniBottomDayImg from '@/assets/bikini-bottom-day.webp';
+import spongebobSkyImg from '@/assets/spongebob-sky.webp';
+import jellyfishFieldsImg from '@/assets/jellyfish-fields.webp';
+import krabbyPattyImg from '@/assets/krabby-patty.webp';
 
 export {
   spongeDefaultImg,
@@ -17,14 +21,33 @@ export {
   krustyKrabImg,
   patrickMascotImg,
   bikiniBottomSceneImg,
+  bikiniBottomDayImg,
+  spongebobSkyImg,
+  jellyfishFieldsImg,
+  krabbyPattyImg,
 };
 
 export interface BikiniBottomArtworkItem {
-  id: 'sponge' | 'pineapple' | 'squidward' | 'crab' | 'krusty' | 'patrick' | 'panorama';
+  id:
+    | 'sky'
+    | 'dayPanorama'
+    | 'jellyfish'
+    | 'krabbyPatty'
+    | 'sponge'
+    | 'pineapple'
+    | 'squidward'
+    | 'crab'
+    | 'krusty'
+    | 'patrick'
+    | 'panorama';
   src: string;
 }
 
 export const BIKINI_BOTTOM_ARTWORK: BikiniBottomArtworkItem[] = [
+  { id: 'sky', src: spongebobSkyImg },
+  { id: 'dayPanorama', src: bikiniBottomDayImg },
+  { id: 'jellyfish', src: jellyfishFieldsImg },
+  { id: 'krabbyPatty', src: krabbyPattyImg },
   { id: 'pineapple', src: pineappleHouseImg },
   { id: 'sponge', src: spongeDefaultImg },
   { id: 'squidward', src: squidwardMascotImg },

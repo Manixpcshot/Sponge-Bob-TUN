@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import {
+  ClipboardPaste,
   Download,
   Eye,
   EyeOff,
   FileKey2,
   FolderOpen,
   Link2,
+  Plus,
   RefreshCw,
   ShieldCheck,
   Trash2,
@@ -21,6 +23,7 @@ interface SubscriptionBarProps {
   onUpdateSubscription: (url?: string) => Promise<void>;
   onRevealUrl: () => Promise<string>;
   onImportFile: () => Promise<void>;
+  onPasteRawText: (rawText: string) => Promise<void>;
   onExportNpvs: () => void;
   onClear: () => Promise<void>;
 }
@@ -34,11 +37,14 @@ export const SubscriptionBar: React.FC<SubscriptionBarProps> = ({
   onUpdateSubscription,
   onRevealUrl,
   onImportFile,
+  onPasteRawText,
   onExportNpvs,
   onClear,
 }) => {
   const [urlInput, setUrlInput] = useState('');
   const [isRevealed, setIsRevealed] = useState(false);
+  const [showPasteBox, setShowPasteBox] = useState(false);
+  const [pasteText, setPasteText] = useState('');
 
   const handleToggleReveal = async () => {
     if (isRevealed) {
@@ -62,6 +68,15 @@ export const SubscriptionBar: React.FC<SubscriptionBarProps> = ({
     }
   };
 
+  const handlePasteSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmed = pasteText.trim();
+    if (!trimmed) return;
+    await onPasteRawText(trimmed);
+    setPasteText('');
+    setShowPasteBox(false);
+  };
+
   const showPlaceholder =
     hasSubscriptionUrl && !urlInput && !isRevealed
       ? maskedSubscriptionUrl
@@ -69,7 +84,7 @@ export const SubscriptionBar: React.FC<SubscriptionBarProps> = ({
 
   return (
     <section
-      className="rounded-2xl p-4 backdrop-blur-xl border transition-all"
+      className="rounded-2xl p-4 backdrop-blur-xl border transition-all shrink-0"
       style={{
         backgroundColor: 'var(--bg-surface)',
         borderColor: 'var(--border-subtle)',
@@ -99,6 +114,22 @@ export const SubscriptionBar: React.FC<SubscriptionBarProps> = ({
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setShowPasteBox((v) => !v)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition hover:scale-[1.02] cursor-pointer"
+            style={{
+              backgroundColor: showPasteBox
+                ? 'var(--accent-yellow)'
+                : 'var(--accent-yellow-soft)',
+              color: showPasteBox ? '#0f172a' : 'var(--accent-yellow)',
+              border: '1px solid var(--border-subtle)',
+            }}
+          >
+            <ClipboardPaste className="w-3.5 h-3.5" />
+            <span>{t.subscription.pasteBtn}</span>
+          </button>
+
           <button
             type="button"
             onClick={onImportFile}
@@ -189,6 +220,38 @@ export const SubscriptionBar: React.FC<SubscriptionBarProps> = ({
           <span>{isUpdating ? t.subscription.updatingBtn : t.subscription.fetchBtn}</span>
         </button>
       </form>
+
+      {showPasteBox && (
+        <form onSubmit={handlePasteSubmit} className="mt-2.5 flex flex-col sm:flex-row gap-2">
+          <input
+            dir="ltr"
+            type="text"
+            value={pasteText}
+            onChange={(e) => setPasteText(e.target.value)}
+            placeholder={t.subscription.pastePlaceholder}
+            autoComplete="off"
+            spellCheck={false}
+            className="flex-1 h-10 rounded-xl px-3.5 text-xs font-mono border outline-none"
+            style={{
+              backgroundColor: 'var(--bg-input)',
+              borderColor: 'var(--border-strong)',
+              color: 'var(--text-primary)',
+            }}
+          />
+          <button
+            type="submit"
+            disabled={!pasteText.trim()}
+            className="h-10 px-4 rounded-xl text-xs font-extrabold flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-45"
+            style={{
+              backgroundColor: 'var(--accent-purple)',
+              color: '#ffffff',
+            }}
+          >
+            <Plus className="w-4 h-4" />
+            <span>{t.subscription.pasteConfirmBtn}</span>
+          </button>
+        </form>
+      )}
     </section>
   );
 };

@@ -6,6 +6,7 @@ import {
   Radio,
   Server,
   SlidersHorizontal,
+  Sparkles,
   Terminal,
   Wifi,
 } from 'lucide-react';
@@ -19,13 +20,15 @@ import type {
 import { formatSpeed } from '../i18n';
 import type { TranslationKeys } from '../i18n/fa';
 import {
+  bikiniBottomDayImg,
   bikiniBottomSceneImg,
+  jellyfishFieldsImg,
   krustyKrabImg,
   pineappleHouseImg,
   squidwardMascotImg,
 } from './Mascots';
 
-export type AppSection = 'connection' | 'configs' | 'console' | 'settings';
+export type AppSection = 'connection' | 'configs' | 'console' | 'bikinibottom' | 'settings';
 
 interface SideNavProps {
   t: TranslationKeys;
@@ -64,6 +67,7 @@ export const SideNav: React.FC<SideNavProps> = ({
 }) => {
   const isConnected = connectionState === 'connected';
   const isBusy = connectionState === 'connecting' || connectionState === 'reconnecting';
+  const isDay = settings.theme === 'bikinibottom';
   const hasUpdate =
     updateStatus.stage === 'available' ||
     updateStatus.stage === 'downloading' ||
@@ -139,6 +143,12 @@ export const SideNav: React.FC<SideNavProps> = ({
         ) : undefined,
     },
     {
+      id: 'bikinibottom',
+      label: t.nav.bikinibottom,
+      shortLabel: t.nav.bikinibottomShort,
+      icon: <Sparkles className="w-4 h-4" />,
+    },
+    {
       id: 'settings',
       label: t.nav.settings,
       shortLabel: t.nav.settingsShort,
@@ -160,8 +170,13 @@ export const SideNav: React.FC<SideNavProps> = ({
         return { img: krustyKrabImg, caption: t.gallery.krustyTitle };
       case 'console':
         return { img: squidwardMascotImg, caption: t.gallery.squidwardTitle };
+      case 'bikinibottom':
+        return { img: jellyfishFieldsImg, caption: t.gallery.jellyfishTitle };
       case 'settings':
-        return { img: bikiniBottomSceneImg, caption: t.gallery.panoramaTitle };
+        return {
+          img: isDay ? bikiniBottomDayImg : bikiniBottomSceneImg,
+          caption: isDay ? t.gallery.dayPanoramaTitle : t.gallery.panoramaTitle,
+        };
     }
   })();
 
@@ -176,7 +191,7 @@ export const SideNav: React.FC<SideNavProps> = ({
   return (
     <aside
       data-testid="side-nav"
-      className={`relative z-20 shrink-0 h-full flex flex-col justify-between border-e backdrop-blur-xl transition-all duration-200 ${
+      className={`relative z-20 shrink-0 h-full flex flex-col justify-between border-e backdrop-blur-xl transition-all duration-200 overflow-y-auto ${
         collapsed ? 'w-[74px] px-2 py-3' : 'w-56 px-3 py-3'
       }`}
       style={{
@@ -227,11 +242,11 @@ export const SideNav: React.FC<SideNavProps> = ({
                 className={`relative w-full rounded-xl transition flex items-center cursor-pointer border ${
                   collapsed
                     ? 'flex-col justify-center gap-1 py-2.5 px-1'
-                    : 'justify-between gap-2.5 px-3 py-2.5 text-start'
+                    : 'justify-between gap-2.5 px-3 py-2 text-start'
                 }`}
                 style={{
                   background: isActive
-                    ? 'linear-gradient(135deg, rgba(250,204,21,0.16), rgba(168,85,247,0.24))'
+                    ? 'linear-gradient(135deg, rgba(250,204,21,0.18), rgba(168,85,247,0.24))'
                     : 'transparent',
                   borderColor: isActive ? 'var(--accent-yellow)' : 'transparent',
                   color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
@@ -292,11 +307,11 @@ export const SideNav: React.FC<SideNavProps> = ({
       </div>
 
       {/* Bottom Bikini Bottom Mini Showcase + Port Chip */}
-      <div className="space-y-2.5 pt-2">
+      <div className="space-y-2 pt-2 shrink-0">
         {!collapsed ? (
           <button
             type="button"
-            onClick={() => onSelectSection('settings')}
+            onClick={() => onSelectSection('bikinibottom')}
             className="w-full text-start rounded-2xl overflow-hidden border transition hover:brightness-110 cursor-pointer group"
             style={{
               backgroundColor: 'var(--bg-elevated)',
@@ -321,7 +336,7 @@ export const SideNav: React.FC<SideNavProps> = ({
         ) : (
           <button
             type="button"
-            onClick={() => onSelectSection('settings')}
+            onClick={() => onSelectSection('bikinibottom')}
             title={scenePreview.caption}
             className="w-12 h-12 mx-auto rounded-xl overflow-hidden border block cursor-pointer hover:scale-105 transition"
             style={{ borderColor: 'var(--border-subtle)' }}

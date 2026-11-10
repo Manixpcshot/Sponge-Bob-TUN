@@ -3,6 +3,8 @@ import { motion } from 'framer-motion';
 import {
   AlertTriangle,
   ArrowRight,
+  Check,
+  Copy,
   Power,
   Shield,
   Sparkles,
@@ -61,6 +63,17 @@ export const ConnectionHero: React.FC<ConnectionHeroProps> = ({
   onGoToConfigs,
 }) => {
   const [elapsed, setElapsed] = useState('00:00:00');
+  const [copiedProxy, setCopiedProxy] = useState(false);
+
+  const handleCopyProxy = async () => {
+    try {
+      await navigator.clipboard.writeText(`127.0.0.1:${settings.socksPort}`);
+      setCopiedProxy(true);
+      setTimeout(() => setCopiedProxy(false), 1600);
+    } catch {
+      // Clipboard may be blocked in non-secure previews
+    }
+  };
 
   useEffect(() => {
     if (connectionState !== 'connected' || !connectedSince) {
@@ -229,10 +242,28 @@ export const ConnectionHero: React.FC<ConnectionHeroProps> = ({
               className="flex flex-wrap items-center justify-center sm:justify-start gap-3 text-[11px] pt-1"
               style={{ color: 'var(--text-muted)' }}
             >
-              <span className="inline-flex items-center gap-1 font-mono" dir="ltr">
+              <button
+                type="button"
+                onClick={() => void handleCopyProxy()}
+                title={t.connection.copyProxyTitle}
+                className="inline-flex items-center gap-1.5 font-mono px-2 py-0.5 rounded-md border hover:bg-white/10 transition cursor-pointer"
+                style={{
+                  backgroundColor: 'var(--bg-elevated)',
+                  borderColor: 'var(--border-subtle)',
+                  color: 'var(--text-secondary)',
+                }}
+                dir="ltr"
+              >
                 <Wifi className="w-3.5 h-3.5" style={{ color: 'var(--accent-yellow)' }} />
-                SOCKS5 127.0.0.1:{settings.socksPort} • HTTP :{settings.httpPort}
-              </span>
+                <span>
+                  SOCKS5 127.0.0.1:{settings.socksPort} • HTTP :{settings.httpPort}
+                </span>
+                {copiedProxy ? (
+                  <Check className="w-3 h-3 text-emerald-400" />
+                ) : (
+                  <Copy className="w-3 h-3 opacity-65" />
+                )}
+              </button>
               <span
                 className="px-2 py-0.5 rounded-md font-semibold"
                 style={{

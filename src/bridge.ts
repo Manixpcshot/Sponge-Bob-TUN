@@ -235,7 +235,7 @@ function createPreviewBridge(): SpongeTunBridge {
     settings: { ...DEFAULT_PREVIEW_SETTINGS },
     updateStatus: {
       stage: 'up-to-date',
-      currentVersion: '1.2.0',
+      currentVersion: '1.3.0',
       releaseUrl: 'https://github.com/Manixpcshot/Sponge-Bob-TUN/releases',
     },
     errorMessage: null,

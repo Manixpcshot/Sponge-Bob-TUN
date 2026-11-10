@@ -1,6 +1,6 @@
 [package]
 name = "sponge-bob-tun"
-version = "1.2.0"
+version = "1.3.0"
 description = "Sponge bob tun (باب اسفنجی) — Rust + Tauri v2 Windows VLESS Xray local proxy desktop client"
 authors = ["Manixpcshot"]
 license = "MIT"

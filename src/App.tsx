@@ -8,6 +8,7 @@ import type {
 } from '../electron/types';
 import { getSpongeBridge } from './bridge';
 import { BandwidthChart } from './components/BandwidthChart';
+import { BikiniBottomWorld } from './components/BikiniBottomWorld';
 import { BubbleBackground } from './components/BubbleBackground';
 import { ConnectionHero } from './components/ConnectionHero';
 import { ConsolePanel } from './components/ConsolePanel';
@@ -181,6 +182,42 @@ export function App() {
     } else if (res.error) {
       pushToast({
         id: `${Date.now()}-imperr`,
+        level: 'error',
+        title: t.connection.error,
+        message: res.error,
+      });
+    }
+  };
+
+  const handlePasteRawText = async (rawText: string) => {
+    const trimmed = rawText.trim();
+    if (!trimmed) return;
+    if (/^https?:\/\//i.test(trimmed)) {
+      await handleUpdateSubscription(trimmed);
+      return;
+    }
+    const res = await bridge.importRawPayload(trimmed, false);
+    if (res.needsPassword || res.invalidPassword) {
+      setPasswordModal({
+        open: true,
+        mode: 'unlock',
+        wrongPassword: Boolean(res.invalidPassword),
+        pendingAction: { type: 'drop', base64Bytes: btoa(unescape(encodeURIComponent(trimmed))) },
+      });
+      return;
+    }
+    if (res.ok) {
+      pushToast({
+        id: `${Date.now()}-paste`,
+        level: 'success',
+        title: isFa ? 'کانفیگ اضافه شد' : 'Config Imported',
+        message: isFa
+          ? `${res.serverCount ?? 0} سرور VLESS بارگذاری شد.`
+          : `Loaded ${res.serverCount ?? 0} VLESS server(s).`,
+      });
+    } else if (res.error) {
+      pushToast({
+        id: `${Date.now()}-pasteerr`,
         level: 'error',
         title: t.connection.error,
         message: res.error,
@@ -391,6 +428,7 @@ export function App() {
                 onUpdateSubscription={(url) => handleUpdateSubscription(url)}
                 onRevealUrl={() => bridge.getSubscriptionUrl()}
                 onImportFile={() => handleImportFile()}
+                onPasteRawText={handlePasteRawText}
                 onExportNpvs={() =>
                   setPasswordModal({
                     open: true,
@@ -508,6 +546,26 @@ export function App() {
                 await bridge.clearLogs();
                 setLogs([]);
               }}
+            />
+          )}
+
+          {activeSection === 'bikinibottom' && (
+            <BikiniBottomWorld
+              t={t}
+              connectionState={snapshot.connectionState}
+              servers={snapshot.servers}
+              settings={settings}
+              onUpdateSettings={handleUpdateSettings}
+              onProbeLatencies={() => bridge.probeLatencies()}
+              onNavigateSection={setActiveSection}
+              onNotifyPreset={(msg) =>
+                pushToast({
+                  id: `${Date.now()}-preset`,
+                  level: 'success',
+                  title: t.appName,
+                  message: msg,
+                })
+              }
             />
           )}
 

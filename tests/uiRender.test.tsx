@@ -2,12 +2,15 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_SETTINGS } from '../electron/core/secureStore';
 import { BandwidthChart } from '../src/components/BandwidthChart';
+import { BikiniBottomWorld } from '../src/components/BikiniBottomWorld';
+import { BubbleBackground } from '../src/components/BubbleBackground';
 import { ConnectionHero } from '../src/components/ConnectionHero';
 import { ConsolePanel } from '../src/components/ConsolePanel';
 import { CountryFlag } from '../src/components/CountryFlag';
 import { QuotaCard } from '../src/components/QuotaCard';
 import { SettingsPanel } from '../src/components/SettingsPanel';
 import { SideNav } from '../src/components/SideNav';
+import { SubscriptionBar } from '../src/components/SubscriptionBar';
 import { TitleBar } from '../src/components/TitleBar';
 import { getTranslations } from '../src/i18n';
 
@@ -21,7 +24,7 @@ describe('UI Components SSR Verification', () => {
           language={lang}
           theme="obsidian"
           windowState={{ isMaximized: false, isFullScreen: false }}
-          updateStatus={{ stage: 'up-to-date', currentVersion: '1.1.0' }}
+          updateStatus={{ stage: 'up-to-date', currentVersion: '1.3.0' }}
           onToggleTheme={() => {}}
           onToggleLanguage={() => {}}
           onOpenSettings={() => {}}
@@ -41,7 +44,7 @@ describe('UI Components SSR Verification', () => {
     }
   });
 
-  it('renders SideNav with separate Connection, Configs, Console, and Settings sections', () => {
+  it('renders SideNav with separate Connection, Configs, Console, Bikini Bottom World, and Settings sections', () => {
     for (const lang of ['fa', 'en'] as const) {
       const t = getTranslations(lang);
       const html = renderToStaticMarkup(
@@ -63,7 +66,7 @@ describe('UI Components SSR Verification', () => {
             history: [],
           }}
           settings={DEFAULT_SETTINGS}
-          updateStatus={{ stage: 'up-to-date', currentVersion: '1.1.0' }}
+          updateStatus={{ stage: 'up-to-date', currentVersion: '1.3.0' }}
           xrayAvailable={true}
           xrayVersion="v26.11.9"
           logErrorCount={0}
@@ -77,15 +80,86 @@ describe('UI Components SSR Verification', () => {
       expect(normalizedHtml).toContain('data-section="connection"');
       expect(normalizedHtml).toContain('data-section="configs"');
       expect(normalizedHtml).toContain('data-section="console"');
+      expect(normalizedHtml).toContain('data-section="bikinibottom"');
       expect(normalizedHtml).toContain('data-section="settings"');
       expect(normalizedHtml).toContain(t.nav.connection);
       expect(normalizedHtml).toContain(t.nav.configs);
       expect(normalizedHtml).toContain(t.nav.console);
+      expect(normalizedHtml).toContain(t.nav.bikinibottom);
       expect(normalizedHtml).toContain(t.nav.settings);
     }
   });
 
-  it('renders dedicated ConsolePanel, ConnectionHero, BandwidthChart, and Bikini Bottom Gallery', () => {
+  it('renders BikiniBottomWorld, SpongeBob Sky flower clouds (Day & Night), and inline VLESS paste bar', () => {
+    for (const lang of ['fa', 'en'] as const) {
+      const t = getTranslations(lang);
+
+      const worldHtml = renderToStaticMarkup(
+        <BikiniBottomWorld
+          t={t}
+          connectionState="connected"
+          servers={[
+            {
+              id: 'srv-1',
+              remark: 'Bikini Node 1',
+              countryCode: 'DE',
+              countryNameFa: 'آلمان',
+              countryNameEn: 'Germany',
+              network: 'ws',
+              security: 'tls',
+              isPinned: false,
+              latencyMs: 65,
+              healthy: true,
+              lastCheckedAt: Date.now(),
+              consecutiveFailures: 0,
+            },
+          ]}
+          settings={{ ...DEFAULT_SETTINGS, theme: 'bikinibottom' }}
+          onUpdateSettings={async () => {}}
+          onProbeLatencies={async () => {}}
+          onNavigateSection={() => {}}
+          onNotifyPreset={() => {}}
+        />,
+      );
+      const normalizedWorldHtml = worldHtml.replace(/&amp;/g, '&').replace(/&#x27;/g, "'");
+      expect(normalizedWorldHtml).toContain(t.world.title);
+      expect(normalizedWorldHtml).toContain(t.world.jellyTitle);
+      expect(normalizedWorldHtml).toContain('Bikini Node 1 (65 ms)');
+
+      const dayBgHtml = renderToStaticMarkup(
+        <BubbleBackground theme="bikinibottom" connectionState="connected" />,
+      );
+      expect(dayBgHtml).toContain('flower-cloud-anim');
+      expect(dayBgHtml).toContain('bubble-anim');
+      expect(dayBgHtml).toContain('bikini-bottom-day.webp');
+      expect(dayBgHtml).toContain('spongebob-sky.webp');
+
+      const nightBgHtml = renderToStaticMarkup(
+        <BubbleBackground theme="obsidian" connectionState="disconnected" />,
+      );
+      expect(nightBgHtml).toContain('flower-cloud-anim');
+      expect(nightBgHtml).toContain('bikini-bottom-scene.webp');
+
+      const subBarHtml = renderToStaticMarkup(
+        <SubscriptionBar
+          t={t}
+          hasSubscriptionUrl={false}
+          maskedSubscriptionUrl=""
+          serverCount={0}
+          isUpdating={false}
+          onUpdateSubscription={async () => {}}
+          onRevealUrl={async () => ''}
+          onImportFile={async () => {}}
+          onPasteRawText={async () => {}}
+          onExportNpvs={() => {}}
+          onClear={async () => {}}
+        />,
+      );
+      expect(subBarHtml).toContain(t.subscription.pasteBtn);
+    }
+  });
+
+  it('renders dedicated ConsolePanel, ConnectionHero, BandwidthChart, and full 11-item Bikini Bottom Gallery', () => {
     const t = getTranslations('fa');
 
     const consoleHtml = renderToStaticMarkup(
@@ -125,6 +199,7 @@ describe('UI Components SSR Verification', () => {
       />,
     );
     expect(heroHtml).toContain(t.connection.addFirstConfigBtn);
+    expect(heroHtml).toContain('SOCKS5 127.0.0.1:10808');
 
     const bwHtml = renderToStaticMarkup(
       <BandwidthChart
@@ -149,7 +224,7 @@ describe('UI Components SSR Verification', () => {
       <SettingsPanel
         t={t}
         settings={DEFAULT_SETTINGS}
-        updateStatus={{ stage: 'up-to-date', currentVersion: '1.1.0' }}
+        updateStatus={{ stage: 'up-to-date', currentVersion: '1.3.0' }}
         onUpdateSettings={async () => {}}
         onPickMascot={async () => {}}
         onCheckUpdates={async () => {}}
@@ -157,6 +232,10 @@ describe('UI Components SSR Verification', () => {
         onOpenGithubReleases={() => {}}
       />,
     );
+    expect(settingsHtml).toContain(t.gallery.skyTitle);
+    expect(settingsHtml).toContain(t.gallery.dayPanoramaTitle);
+    expect(settingsHtml).toContain(t.gallery.jellyfishTitle);
+    expect(settingsHtml).toContain(t.gallery.krabbyPattyTitle);
     expect(settingsHtml).toContain(t.gallery.pineappleTitle);
     expect(settingsHtml).toContain(t.gallery.squidwardTitle);
     expect(settingsHtml).toContain(t.gallery.krustyTitle);
