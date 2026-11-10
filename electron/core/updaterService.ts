@@ -1,3 +1,7 @@
+import { spawn } from 'node:child_process';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import type { UpdateStatus } from '../types';
 import { SafeLogger, sanitizeLogMessage } from './logSanitizer';
 
@@ -17,6 +21,18 @@ export function compareSemver(a: string, b: string): number {
   return 0;
 }
 
+interface GithubReleaseAsset {
+  name: string;
+  browser_download_url: string;
+  size: number;
+}
+
+interface GithubReleaseResponse {
+  tag_name?: string;
+  html_url?: string;
+  assets?: GithubReleaseAsset[];
+}
+
 export class UpdaterService {
   private status: UpdateStatus;
   private autoInstallOnDownload = true;
@@ -26,6 +42,7 @@ export class UpdaterService {
   private readonly beforeQuitCleanup: () => Promise<void>;
   private autoUpdaterInstance: typeof import('electron-updater').autoUpdater | null = null;
   private initialized = false;
+  private pendingPortableAsset: { version: string; url: string; downloadedPath?: string } | null = null;
 
   constructor(options: {
     currentVersion: string;
@@ -58,12 +75,29 @@ export class UpdaterService {
     this.onStatusChange(this.getStatus());
   }
 
+  private isPortableBuild(): boolean {
+    if (process.env.PORTABLE_EXECUTABLE_FILE || process.env.PORTABLE_EXECUTABLE_DIR) {
+      return true;
+    }
+    if (process.execPath && fs.existsSync(path.join(path.dirname(process.execPath), 'PORTABLE_MODE.txt'))) {
+      return true;
+    }
+    if (this.isPackaged && process.resourcesPath) {
+      const appUpdateYml = path.join(process.resourcesPath, 'app-update.yml');
+      return !fs.existsSync(appUpdateYml);
+    }
+    return false;
+  }
+
+  private canUseElectronUpdater(): boolean {
+    return this.isPackaged && !this.isPortableBuild();
+  }
+
   private initElectronUpdater(): void {
-    if (this.initialized || !this.isPackaged) return;
+    if (this.initialized || !this.canUseElectronUpdater()) return;
     this.initialized = true;
 
     try {
-      // Dynamic require so tests in plain Node don't fail loading Electron's app object
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       const { autoUpdater } = require('electron-updater') as typeof import('electron-updater');
       this.autoUpdaterInstance = autoUpdater;
@@ -128,10 +162,48 @@ export class UpdaterService {
     }
   }
 
+  private async downloadPortableUpdate(version: string, assetUrl: string): Promise<void> {
+    const portableExe = process.env.PORTABLE_EXECUTABLE_FILE;
+    if (!portableExe || process.platform !== 'win32') return;
+
+    try {
+      this.emit({ stage: 'downloading', latestVersion: version, percent: 15 });
+      const res = await fetch(assetUrl, {
+        headers: { 'User-Agent': `SpongeBobTUN/${this.status.currentVersion}` },
+        redirect: 'follow',
+      });
+      if (!res.ok) throw new Error(`Download HTTP ${res.status}`);
+
+      const buf = Buffer.from(await res.arrayBuffer());
+      // Validate Windows PE ("MZ") signature and reasonable size (>1MB)
+      if (buf.length < 1_000_000 || buf[0] !== 0x4d || buf[1] !== 0x5a) {
+        throw new Error('Downloaded update failed PE integrity check');
+      }
+
+      const stagePath = path.join(os.tmpdir(), `sponge-bob-tun-portable-${version}.exe`);
+      fs.writeFileSync(stagePath, buf);
+      this.pendingPortableAsset = { version, url: assetUrl, downloadedPath: stagePath };
+      this.emit({
+        stage: 'downloaded',
+        latestVersion: version,
+        percent: 100,
+        releaseUrl: `${RELEASES_URL}/tag/v${version}`,
+      });
+
+      if (this.autoInstallOnDownload) {
+        setTimeout(() => {
+          void this.installAndRelaunch();
+        }, 1200);
+      }
+    } catch (err) {
+      this.logger.warn(`Portable auto-update download skipped: ${sanitizeLogMessage(err)}`);
+    }
+  }
+
   async checkForUpdates(isAutoLaunchCheck = false): Promise<UpdateStatus> {
     this.emit({ stage: 'checking', message: undefined });
 
-    if (this.isPackaged) {
+    if (this.canUseElectronUpdater()) {
       this.initElectronUpdater();
       if (this.autoUpdaterInstance) {
         try {
@@ -146,7 +218,7 @@ export class UpdaterService {
       }
     }
 
-    // Fallback / dev-mode read-only GitHub Releases API check
+    // Portable mode OR dev mode: query GitHub Releases API safely without app-update.yml
     try {
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), 8000);
@@ -169,7 +241,7 @@ export class UpdaterService {
       if (!res.ok) {
         throw new Error(`GitHub check status ${res.status}`);
       }
-      const data = (await res.json()) as { tag_name?: string; html_url?: string };
+      const data = (await res.json()) as GithubReleaseResponse;
       const latest = (data.tag_name || '').replace(/^v/i, '');
       if (latest && compareSemver(latest, this.status.currentVersion) > 0) {
         this.emit({
@@ -177,6 +249,20 @@ export class UpdaterService {
           latestVersion: latest,
           releaseUrl: data.html_url || RELEASES_URL,
         });
+
+        // If running inside single-file Windows Portable .exe, auto-download new Portable .exe
+        if (this.isPortableBuild() && process.env.PORTABLE_EXECUTABLE_FILE && Array.isArray(data.assets)) {
+          const portableAsset = data.assets.find((a) =>
+            /Electron-Portable-.*\.exe$/i.test(a.name),
+          );
+          if (portableAsset) {
+            this.pendingPortableAsset = {
+              version: latest,
+              url: portableAsset.browser_download_url,
+            };
+            await this.downloadPortableUpdate(latest, portableAsset.browser_download_url);
+          }
+        }
       } else {
         this.emit({ stage: 'up-to-date' });
       }
@@ -196,9 +282,27 @@ export class UpdaterService {
     } catch {
       // proceed anyway
     }
+
     if (this.autoUpdaterInstance) {
-      // silent = true, isForceRunAfter = true -> closes, installs, relaunches once automatically
       this.autoUpdaterInstance.quitAndInstall(true, true);
+      return;
+    }
+
+    const portableExe = process.env.PORTABLE_EXECUTABLE_FILE;
+    const downloadedPath = this.pendingPortableAsset?.downloadedPath;
+    if (process.platform === 'win32' && portableExe && downloadedPath && fs.existsSync(downloadedPath)) {
+      const escapedSrc = downloadedPath.replace(/'/g, "''");
+      const escapedDst = portableExe.replace(/'/g, "''");
+      const psCmd = `Start-Sleep -Milliseconds 1200; Copy-Item -LiteralPath '${escapedSrc}' -Destination '${escapedDst}' -Force; Remove-Item -LiteralPath '${escapedSrc}' -Force -ErrorAction SilentlyContinue; Start-Process -FilePath '${escapedDst}'`;
+      const child = spawn(
+        'powershell.exe',
+        ['-NoProfile', '-NonInteractive', '-WindowStyle', 'Hidden', '-Command', psCmd],
+        { detached: true, stdio: 'ignore', windowsHide: true },
+      );
+      child.unref();
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { app } = require('electron') as typeof import('electron');
+      app.exit(0);
     }
   }
 }

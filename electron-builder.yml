@@ -22,15 +22,18 @@ extraResources:
       - "*.ico"
 win:
   icon: assets/icons/icon.ico
-  artifactName: Sponge-bob-tun-Setup-${version}.${ext}
   target:
     - target: nsis
+      arch:
+        - x64
+    - target: portable
       arch:
         - x64
     - target: zip
       arch:
         - x64
 nsis:
+  artifactName: Sponge-bob-tun-Setup-${version}.${ext}
   oneClick: false
   perMachine: false
   allowToChangeInstallationDirectory: true
@@ -41,6 +44,11 @@ nsis:
   uninstallerIcon: assets/icons/icon.ico
   deleteAppDataOnUninstall: false
   runAfterFinish: true
+portable:
+  artifactName: Sponge-bob-tun-Electron-Portable-${version}.${ext}
+  unicode: true
+zip:
+  artifactName: Sponge-bob-tun-Electron-Portable-${version}-win-x64.${ext}
 publish:
   - provider: github
     owner: Manixpcshot

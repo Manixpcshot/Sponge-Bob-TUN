@@ -68,22 +68,25 @@ export const TitleBar: React.FC<TitleBarProps> = ({
       }}
     >
       {/* Left side: Brand + Quick Action Pills */}
-      <div className="flex items-center gap-2.5 min-w-0">
-        <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2.5 min-w-0 flex-1">
+        <div data-tauri-drag-region className="flex items-center gap-2 cursor-default">
           <img
+            data-tauri-drag-region
             src={appIconImg}
             alt="Sponge bob tun"
             className="w-7 h-7 rounded-lg shadow-md"
             draggable={false}
           />
-          <div className="flex items-baseline gap-2 truncate">
+          <div data-tauri-drag-region className="flex items-baseline gap-2 truncate">
             <span
+              data-tauri-drag-region
               className="font-extrabold text-sm tracking-tight"
               style={{ color: 'var(--accent-yellow)' }}
             >
               {t.appName}
             </span>
             <span
+              data-tauri-drag-region
               className="hidden sm:inline text-[11px] font-medium px-2 py-0.5 rounded-full"
               style={{
                 backgroundColor: 'var(--accent-purple-soft)',
@@ -96,7 +99,7 @@ export const TitleBar: React.FC<TitleBarProps> = ({
           </div>
         </div>
 
-        <div className="no-drag flex items-center gap-1.5 ml-2">
+        <div className="no-drag flex items-center gap-1.5 ml-2 shrink-0">
           {/* Language switcher (FA / EN) */}
           <button
             type="button"
@@ -186,6 +189,8 @@ export const TitleBar: React.FC<TitleBarProps> = ({
             </button>
           )}
         </div>
+
+        <div data-tauri-drag-region className="flex-1 self-stretch min-w-[24px]" />
       </div>
 
       {/* RIGHT SIDE ALWAYS (even in RTL): Minimize, Maximize/Fullscreen, Close */}

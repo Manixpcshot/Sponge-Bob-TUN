@@ -1,0 +1,55 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Sponge bob tun",
+  "version": "1.1.0",
+  "identifier": "io.github.manixpcshot.spongebobtun",
+  "build": {
+    "beforeDevCommand": "npx vite",
+    "devUrl": "http://localhost:5173",
+    "beforeBuildCommand": "npm run build:renderer",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "withGlobalTauri": false,
+    "windows": [
+      {
+        "label": "main",
+        "title": "Sponge bob tun — باب اسفنجی",
+        "width": 1140,
+        "height": 780,
+        "minWidth": 960,
+        "minHeight": 680,
+        "decorations": false,
+        "resizable": true,
+        "maximizable": true,
+        "minimizable": true,
+        "center": true,
+        "backgroundColor": "#08080e"
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["nsis"],
+    "icon": [
+      "../assets/icons/icon.ico",
+      "../assets/icons/icon.png"
+    ],
+    "resources": {
+      "../resources/bin": "bin",
+      "../assets/icons": "icons"
+    },
+    "windows": {
+      "webviewInstallMode": {
+        "type": "embedBootstrapper"
+      },
+      "nsis": {
+        "installMode": "currentUser",
+        "displayLanguageSelector": false
+      }
+    }
+  }
+}

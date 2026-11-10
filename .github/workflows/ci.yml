@@ -10,7 +10,7 @@ on:
       - main
 
 jobs:
-  verify:
+  verify-node-ui:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -24,3 +24,43 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
+
+  verify-rust-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - name: Install Linux Tauri system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libssl-dev pkg-config libgtk-3-dev
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+      - run: npm ci
+        env:
+          ELECTRON_SKIP_BINARY_DOWNLOAD: "1"
+      - run: npm run build:renderer
+      - run: cargo test --manifest-path src-tauri/Cargo.toml
+
+  verify-rust-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+      - run: npm ci
+        env:
+          ELECTRON_SKIP_BINARY_DOWNLOAD: "1"
+      - run: npm run build:renderer
+      - run: cargo test --manifest-path src-tauri/Cargo.toml
