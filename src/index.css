@@ -1,0 +1,141 @@
+@import "tailwindcss";
+@import "@fontsource/vazirmatn/400.css";
+@import "@fontsource/vazirmatn/500.css";
+@import "@fontsource/vazirmatn/600.css";
+@import "@fontsource/vazirmatn/700.css";
+@import "@fontsource/vazirmatn/800.css";
+@import "@fontsource/inter/400.css";
+@import "@fontsource/inter/500.css";
+@import "@fontsource/inter/600.css";
+@import "@fontsource/inter/700.css";
+
+:root,
+[data-theme="obsidian"] {
+  --bg-app: #07070d;
+  --bg-surface: rgba(16, 16, 27, 0.86);
+  --bg-surface-strong: #121220;
+  --bg-elevated: rgba(25, 25, 42, 0.85);
+  --bg-input: rgba(10, 10, 18, 0.9);
+  --border-subtle: rgba(168, 85, 247, 0.18);
+  --border-strong: rgba(250, 204, 21, 0.38);
+  --text-primary: #f8fafc;
+  --text-secondary: #a1a1bd;
+  --text-muted: #6e6f8c;
+  --accent-yellow: #facc15;
+  --accent-yellow-soft: rgba(250, 204, 21, 0.14);
+  --accent-purple: #a855f7;
+  --accent-purple-deep: #7e22ce;
+  --accent-purple-soft: rgba(168, 85, 247, 0.16);
+  --accent-cyan: #22d3ee;
+  --glow-hero: radial-gradient(circle at 50% 0%, rgba(147, 51, 234, 0.22), transparent 65%),
+    radial-gradient(circle at 85% 90%, rgba(250, 204, 21, 0.1), transparent 55%);
+  --card-shadow: 0 18px 45px rgba(0, 0, 0, 0.55);
+}
+
+[data-theme="bikinibottom"] {
+  --bg-app: #1f0d38;
+  --bg-surface: rgba(45, 20, 82, 0.88);
+  --bg-surface-strong: #31155c;
+  --bg-elevated: rgba(68, 30, 118, 0.85);
+  --bg-input: rgba(28, 11, 52, 0.92);
+  --border-subtle: rgba(250, 204, 21, 0.32);
+  --border-strong: rgba(253, 224, 71, 0.65);
+  --text-primary: #fefce8;
+  --text-secondary: #e9d5ff;
+  --text-muted: #c084fc;
+  --accent-yellow: #fde047;
+  --accent-yellow-soft: rgba(253, 224, 71, 0.2);
+  --accent-purple: #c084fc;
+  --accent-purple-deep: #9333ea;
+  --accent-purple-soft: rgba(192, 132, 252, 0.22);
+  --accent-cyan: #38bdf8;
+  --glow-hero: radial-gradient(circle at 20% 10%, rgba(250, 204, 21, 0.26), transparent 52%),
+    radial-gradient(circle at 80% 85%, rgba(168, 85, 247, 0.35), transparent 60%);
+  --card-shadow: 0 20px 50px rgba(17, 4, 34, 0.65);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background-color: var(--bg-app);
+  color: var(--text-primary);
+  font-family: "Vazirmatn", "Inter", system-ui, -apple-system, sans-serif;
+  user-select: none;
+}
+
+[dir="ltr"] body,
+[dir="ltr"] #root {
+  font-family: "Inter", "Vazirmatn", system-ui, -apple-system, sans-serif;
+}
+
+input,
+textarea {
+  user-select: text;
+}
+
+/* Custom underwater scrollbars */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(168, 85, 247, 0.32);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(250, 204, 21, 0.55);
+}
+
+/* Bikini bottom subtle sponge pore dot texture for yellow-purple theme */
+[data-theme="bikinibottom"] .sponge-texture {
+  background-image: radial-gradient(rgba(253, 224, 71, 0.08) 1.5px, transparent 1.5px);
+  background-size: 26px 26px;
+}
+
+[data-theme="obsidian"] .sponge-texture {
+  background-image: radial-gradient(rgba(168, 85, 247, 0.06) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+@keyframes bubbleRise {
+  0% {
+    transform: translateY(0) translateX(0) scale(0.85);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.55;
+  }
+  70% {
+    opacity: 0.35;
+  }
+  100% {
+    transform: translateY(-105vh) translateX(18px) scale(1.15);
+    opacity: 0;
+  }
+}
+
+.bubble-anim {
+  animation: bubbleRise linear infinite;
+}
+
+.drag-region {
+  -webkit-app-region: drag;
+}
+
+.no-drag {
+  -webkit-app-region: no-drag;
+}

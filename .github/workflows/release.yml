@@ -1,0 +1,83 @@
+name: Build & Release Windows Installer
+
+on:
+  release:
+    types: [published]
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to build & attach (e.g. v1.0.0)"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck & Test
+        run: |
+          npm run typecheck
+          npm test
+
+      - name: Download Xray-core Windows x64 binary (SHA-256 verified)
+        run: node scripts/download-xray.mjs --platform win32 --arch x64
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Sync version with release tag if needed
+        shell: pwsh
+        run: |
+          $tag = "${{ github.event.release.tag_name || github.event.inputs.tag || '' }}"
+          if (-not $tag -and "${{ github.ref }}" -like "refs/tags/v*") {
+            $tag = "${{ github.ref_name }}"
+          }
+          if ($tag) {
+            $ver = $tag.TrimStart("v")
+            Write-Host "Using release tag $tag (version $ver)"
+            npm version $ver --no-git-tag-version --allow-same-version
+            "RELEASE_TAG=$tag" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          } else {
+            $pkg = Get-Content package.json | ConvertFrom-Json
+            $ver = $pkg.version
+            "RELEASE_TAG=v$ver" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          }
+
+      - name: Build & Package Windows NSIS + Portable + latest.yml
+        run: |
+          npm run build
+          npx electron-builder --win --x64 --publish never
+
+      - name: List generated release artifacts
+        shell: pwsh
+        run: Get-ChildItem release
+
+      - name: Ensure GitHub Release exists and upload Windows binaries
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $tag = $env:RELEASE_TAG
+          gh release view $tag 2>$null
+          if ($LASTEXITCODE -ne 0) {
+            gh release create $tag --title "Sponge bob tun $tag" --notes "Automated Windows x64 build for $tag (includes NSIS installer, portable archive, latest.yml for auto-update, and bundled Xray-core)."
+          }
+          $assets = Get-ChildItem release -File | Where-Object {
+            $_.Name -like "*.exe" -or $_.Name -like "*.blockmap" -or $_.Name -like "*.zip" -or $_.Name -eq "latest.yml"
+          } | ForEach-Object { $_.FullName }
+          gh release upload $tag @assets --clobber

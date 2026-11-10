@@ -1,0 +1,48 @@
+appId: io.github.manixpcshot.spongebobtun
+productName: Sponge bob tun
+copyright: Copyright © 2026 Manixpcshot
+directories:
+  output: release
+  buildResources: assets/icons
+files:
+  - dist/**/*
+  - dist-electron/**/*
+  - package.json
+  - "!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}"
+  - "!**/node_modules/*/{test,__tests__,tests,powered-test,example,examples}"
+extraResources:
+  - from: resources/bin
+    to: bin
+    filter:
+      - "**/*"
+  - from: assets/icons
+    to: icons
+    filter:
+      - "*.png"
+      - "*.ico"
+win:
+  icon: assets/icons/icon.ico
+  artifactName: Sponge-bob-tun-Setup-${version}.${ext}
+  target:
+    - target: nsis
+      arch:
+        - x64
+    - target: zip
+      arch:
+        - x64
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: Sponge bob tun
+  installerIcon: assets/icons/icon.ico
+  uninstallerIcon: assets/icons/icon.ico
+  deleteAppDataOnUninstall: false
+  runAfterFinish: true
+publish:
+  - provider: github
+    owner: Manixpcshot
+    repo: Sponge-Bob-TUN
+    releaseType: release
