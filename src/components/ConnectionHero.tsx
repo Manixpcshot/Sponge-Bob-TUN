@@ -66,12 +66,26 @@ export const ConnectionHero: React.FC<ConnectionHeroProps> = ({
   const [copiedProxy, setCopiedProxy] = useState(false);
 
   const handleCopyProxy = async () => {
+    const text = `127.0.0.1:${settings.socksPort}`;
     try {
-      await navigator.clipboard.writeText(`127.0.0.1:${settings.socksPort}`);
+      await navigator.clipboard.writeText(text);
       setCopiedProxy(true);
       setTimeout(() => setCopiedProxy(false), 1600);
     } catch {
-      // Clipboard may be blocked in non-secure previews
+      try {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        setCopiedProxy(true);
+        setTimeout(() => setCopiedProxy(false), 1600);
+      } catch {
+        // Clipboard unavailable
+      }
     }
   };
 
@@ -259,7 +273,10 @@ export const ConnectionHero: React.FC<ConnectionHeroProps> = ({
                   SOCKS5 127.0.0.1:{settings.socksPort} • HTTP :{settings.httpPort}
                 </span>
                 {copiedProxy ? (
-                  <Check className="w-3 h-3 text-emerald-400" />
+                  <span className="inline-flex items-center gap-1 text-emerald-400 font-sans font-bold">
+                    <Check className="w-3 h-3" />
+                    {t.connection.proxyCopied}
+                  </span>
                 ) : (
                   <Copy className="w-3 h-3 opacity-65" />
                 )}

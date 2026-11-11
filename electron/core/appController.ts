@@ -733,6 +733,7 @@ export class AppController {
     this.vaultState.selectedServerId = null;
     this.vaultState.userInfo = null;
     this.quotaAlert = null;
+    this.errorMessage = null;
     this.metrics.clear();
     this.store.save(this.vaultState);
     this.emitSnapshot();

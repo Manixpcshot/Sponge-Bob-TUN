@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Eye, EyeOff, KeyRound, Lock, X } from 'lucide-react';
 import type { TranslationKeys } from '../i18n/fa';
@@ -23,6 +23,30 @@ export const PasswordModal: React.FC<PasswordModalProps> = ({
   const [password, setPassword] = useState('');
   const [showPass, setShowPass] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
+  // Clear password whenever modal opens, closes, or switches between unlock/export
+  useEffect(() => {
+    if (!isOpen) {
+      setPassword('');
+      setShowPass(false);
+      setSubmitting(false);
+    } else if (!wrongPassword) {
+      setPassword('');
+      setShowPass(false);
+    }
+  }, [isOpen, mode, wrongPassword]);
+
+  // Allow Escape key to dismiss cleanly
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onCancel();
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [isOpen, onCancel]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

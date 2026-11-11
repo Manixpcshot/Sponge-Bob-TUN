@@ -12,6 +12,10 @@ import bikiniBottomDayImg from '@/assets/bikini-bottom-day.webp';
 import spongebobSkyImg from '@/assets/spongebob-sky.webp';
 import jellyfishFieldsImg from '@/assets/jellyfish-fields.webp';
 import krabbyPattyImg from '@/assets/krabby-patty.webp';
+import garySnailImg from '@/assets/gary-snail.webp';
+import sandyTreedomeImg from '@/assets/sandy-treedome.webp';
+import planktonChumbucketImg from '@/assets/plankton-chumbucket.webp';
+import friendsJellyfishingImg from '@/assets/friends-jellyfishing.webp';
 
 export {
   spongeDefaultImg,
@@ -25,6 +29,10 @@ export {
   spongebobSkyImg,
   jellyfishFieldsImg,
   krabbyPattyImg,
+  garySnailImg,
+  sandyTreedomeImg,
+  planktonChumbucketImg,
+  friendsJellyfishingImg,
 };
 
 export interface BikiniBottomArtworkItem {
@@ -32,6 +40,7 @@ export interface BikiniBottomArtworkItem {
     | 'sky'
     | 'dayPanorama'
     | 'jellyfish'
+    | 'friends'
     | 'krabbyPatty'
     | 'sponge'
     | 'pineapple'
@@ -39,6 +48,9 @@ export interface BikiniBottomArtworkItem {
     | 'crab'
     | 'krusty'
     | 'patrick'
+    | 'gary'
+    | 'sandy'
+    | 'plankton'
     | 'panorama';
   src: string;
 }
@@ -47,6 +59,7 @@ export const BIKINI_BOTTOM_ARTWORK: BikiniBottomArtworkItem[] = [
   { id: 'sky', src: spongebobSkyImg },
   { id: 'dayPanorama', src: bikiniBottomDayImg },
   { id: 'jellyfish', src: jellyfishFieldsImg },
+  { id: 'friends', src: friendsJellyfishingImg },
   { id: 'krabbyPatty', src: krabbyPattyImg },
   { id: 'pineapple', src: pineappleHouseImg },
   { id: 'sponge', src: spongeDefaultImg },
@@ -54,6 +67,9 @@ export const BIKINI_BOTTOM_ARTWORK: BikiniBottomArtworkItem[] = [
   { id: 'krusty', src: krustyKrabImg },
   { id: 'crab', src: crabDefaultImg },
   { id: 'patrick', src: patrickMascotImg },
+  { id: 'gary', src: garySnailImg },
+  { id: 'sandy', src: sandyTreedomeImg },
+  { id: 'plankton', src: planktonChumbucketImg },
   { id: 'panorama', src: bikiniBottomSceneImg },
 ];
 
@@ -144,7 +160,7 @@ export const SpongeMascot: React.FC<SpongeMascotProps> = ({
         <img
           src={imgSrc}
           alt="Sponge bob tun mascot"
-          className="w-full h-full object-cover"
+          className={`w-full h-full object-cover ${customImageUrl ? 'object-center' : 'object-[64%_42%]'}`}
           draggable={false}
         />
       </motion.div>
@@ -208,7 +224,7 @@ export const CrabMascot: React.FC<CrabMascotProps> = ({ isAlert, customImageUrl 
         <img
           src={imgSrc}
           alt="Mr. Krabs Quota Guard"
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover object-[50%_40%]"
           draggable={false}
         />
       </motion.div>
@@ -242,7 +258,7 @@ export const SquidwardMascot: React.FC<{ size?: 'sm' | 'md' | 'lg' }> = ({ size 
       <img
         src={squidwardMascotImg}
         alt="Squidward Tentacles"
-        className="w-full h-full object-cover object-center"
+        className="w-full h-full object-cover object-[38%_42%]"
         draggable={false}
       />
     </motion.div>
@@ -264,7 +280,7 @@ export const PatrickMascot: React.FC<{ size?: 'sm' | 'md' | 'lg' }> = ({ size = 
       <img
         src={patrickMascotImg}
         alt="Patrick Star"
-        className="w-full h-full object-cover object-center"
+        className="w-full h-full object-cover object-[40%_45%]"
         draggable={false}
       />
     </motion.div>

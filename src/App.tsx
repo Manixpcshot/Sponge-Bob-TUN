@@ -22,6 +22,15 @@ import { TitleBar } from './components/TitleBar';
 import { ToastStack } from './components/ToastStack';
 import { getTranslations } from './i18n';
 
+function utf8ToBase64(text: string): string {
+  const bytes = new TextEncoder().encode(text);
+  let binary = '';
+  for (let i = 0; i < bytes.length; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
+}
+
 const bridge = getSpongeBridge();
 
 export function App() {
@@ -202,7 +211,7 @@ export function App() {
         open: true,
         mode: 'unlock',
         wrongPassword: Boolean(res.invalidPassword),
-        pendingAction: { type: 'drop', base64Bytes: btoa(unescape(encodeURIComponent(trimmed))) },
+        pendingAction: { type: 'drop', base64Bytes: utf8ToBase64(trimmed) },
       });
       return;
     }
@@ -323,7 +332,11 @@ export function App() {
         e.preventDefault();
         setDragActive(true);
       }}
-      onDragLeave={() => setDragActive(false)}
+      onDragLeave={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+          setDragActive(false);
+        }
+      }}
       onDrop={(e) => void handleDropFile(e)}
     >
       <BubbleBackground theme={settings.theme} connectionState={snapshot.connectionState} />

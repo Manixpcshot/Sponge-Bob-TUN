@@ -22,6 +22,7 @@ import type { TranslationKeys } from '../i18n/fa';
 import {
   bikiniBottomDayImg,
   bikiniBottomSceneImg,
+  friendsJellyfishingImg,
   jellyfishFieldsImg,
   krustyKrabImg,
   pineappleHouseImg,
@@ -171,7 +172,10 @@ export const SideNav: React.FC<SideNavProps> = ({
       case 'console':
         return { img: squidwardMascotImg, caption: t.gallery.squidwardTitle };
       case 'bikinibottom':
-        return { img: jellyfishFieldsImg, caption: t.gallery.jellyfishTitle };
+        return {
+          img: isDay ? friendsJellyfishingImg : jellyfishFieldsImg,
+          caption: isDay ? t.gallery.friendsTitle : t.gallery.jellyfishTitle,
+        };
       case 'settings':
         return {
           img: isDay ? bikiniBottomDayImg : bikiniBottomSceneImg,
