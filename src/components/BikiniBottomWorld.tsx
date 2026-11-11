@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   Award,
@@ -22,10 +22,14 @@ import type { TranslationKeys } from '../i18n/fa';
 import {
   bikiniBottomDayImg,
   bikiniBottomSceneImg,
+  friendsJellyfishingImg,
+  garySnailImg,
   jellyfishFieldsImg,
   krabbyPattyImg,
   krustyKrabImg,
   pineappleHouseImg,
+  planktonChumbucketImg,
+  sandyTreedomeImg,
   spongebobSkyImg,
   squidwardMascotImg,
 } from './Mascots';
@@ -56,10 +60,10 @@ const JELLY_COLORS = ['#F472B6', '#FDE047', '#22D3EE', '#C084FC', '#FB7185'];
 function makeSwarm(seed = 1): JellyfishSprite[] {
   return Array.from({ length: 7 }, (_, idx) => ({
     id: seed * 100 + idx,
-    x: 10 + ((idx * 13 + seed * 7) % 78),
-    y: 15 + ((idx * 19 + seed * 11) % 62),
+    x: 8 + ((idx * 13 + seed * 7) % 74),
+    y: 12 + ((idx * 17 + seed * 11) % 58),
     color: JELLY_COLORS[(idx + seed) % JELLY_COLORS.length],
-    scale: 0.85 + (idx % 3) * 0.2,
+    scale: 0.85 + (idx % 3) * 0.16,
     speed: 2.8 + (idx % 4) * 0.7,
   }));
 }
@@ -94,6 +98,15 @@ export const BikiniBottomWorld: React.FC<BikiniBottomWorldProps> = ({
   );
   const [isProbing, setIsProbing] = useState(false);
   const [isGrilling, setIsGrilling] = useState(false);
+  const grillTimerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (grillTimerRef.current !== null) {
+        window.clearTimeout(grillTimerRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     try {
@@ -130,9 +143,9 @@ export const BikiniBottomWorld: React.FC<BikiniBottomWorldProps> = ({
         j.id === id
           ? {
               ...j,
-              id: Date.now() + Math.floor(Math.random() * 1000),
-              x: 8 + Math.floor(Math.random() * 82),
-              y: 14 + Math.floor(Math.random() * 64),
+              id: Date.now() + Math.floor(Math.random() * 10000),
+              x: 8 + Math.floor(Math.random() * 74),
+              y: 12 + Math.floor(Math.random() * 58),
               color: JELLY_COLORS[Math.floor(Math.random() * JELLY_COLORS.length)],
             }
           : j,
@@ -151,9 +164,15 @@ export const BikiniBottomWorld: React.FC<BikiniBottomWorldProps> = ({
   };
 
   const handleGrillBurger = () => {
+    if (grillTimerRef.current !== null) {
+      window.clearTimeout(grillTimerRef.current);
+    }
     setIsGrilling(true);
     setBurgerCount((prev) => prev + 1);
-    setTimeout(() => setIsGrilling(false), 380);
+    grillTimerRef.current = window.setTimeout(() => {
+      setIsGrilling(false);
+      grillTimerRef.current = null;
+    }, 380);
   };
 
   const applyPreset = async (patch: Partial<AppSettings>, label: string) => {
@@ -254,16 +273,17 @@ export const BikiniBottomWorld: React.FC<BikiniBottomWorldProps> = ({
               }}
             >
               <img
-                src={jellyfishFieldsImg}
+                src={isDay ? friendsJellyfishingImg : jellyfishFieldsImg}
                 alt={t.world.jellyTitle}
-                className="absolute inset-0 w-full h-full object-cover"
+                className="absolute inset-0 w-full h-full object-cover transition-all duration-700"
                 draggable={false}
               />
               <div
                 className="absolute inset-0"
                 style={{
-                  background:
-                    'linear-gradient(180deg, rgba(6,22,44,0.55) 0%, rgba(10,10,25,0.22) 55%, rgba(6,18,38,0.82) 100%)',
+                  background: isDay
+                    ? 'linear-gradient(180deg, rgba(6,38,68,0.52) 0%, rgba(10,30,55,0.18) 55%, rgba(4,24,48,0.82) 100%)'
+                    : 'linear-gradient(180deg, rgba(6,22,44,0.55) 0%, rgba(10,10,25,0.22) 55%, rgba(6,18,38,0.82) 100%)',
                 }}
               />
 
@@ -291,16 +311,18 @@ export const BikiniBottomWorld: React.FC<BikiniBottomWorldProps> = ({
               </div>
 
               {/* Interactive Catchable Jellyfish Sprites */}
-              <div className="relative z-10 flex-1 min-h-[180px]">
+              <div className="relative z-10 flex-1 min-h-[180px] overflow-hidden">
                 {swarm.map((jelly) => (
                   <motion.button
                     key={jelly.id}
                     type="button"
                     aria-label="Catch Jellyfish"
                     onClick={() => handleCatchJelly(jelly.id)}
-                    whileHover={{ scale: 1.25 }}
-                    whileTap={{ scale: 0.7 }}
+                    initial={{ scale: jelly.scale }}
+                    whileHover={{ scale: jelly.scale * 1.25 }}
+                    whileTap={{ scale: jelly.scale * 0.7 }}
                     animate={{
+                      scale: jelly.scale,
                       y: [-8, 8, -8],
                       x: [-5, 5, -5],
                       rotate: [-6, 6, -6],
@@ -314,7 +336,6 @@ export const BikiniBottomWorld: React.FC<BikiniBottomWorldProps> = ({
                     style={{
                       left: `${jelly.x}%`,
                       top: `${jelly.y}%`,
-                      transform: `scale(${jelly.scale})`,
                       filter: `drop-shadow(0 0 10px ${jelly.color})`,
                     }}
                   >
@@ -689,29 +710,54 @@ export const BikiniBottomWorld: React.FC<BikiniBottomWorldProps> = ({
               </div>
             </section>
 
-            {/* Interactive House Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            {/* Interactive Bikini Bottom Neighborhood Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
               {(
                 [
                   {
+                    key: 'pineapple',
                     section: 'connection' as AppSection,
                     img: pineappleHouseImg,
                     title: t.world.housePineapple,
                     desc: t.world.housePineappleDesc,
                   },
                   {
+                    key: 'krusty',
                     section: 'configs' as AppSection,
                     img: krustyKrabImg,
                     title: t.world.houseKrusty,
                     desc: t.world.houseKrustyDesc,
                   },
                   {
+                    key: 'squidward',
                     section: 'console' as AppSection,
                     img: squidwardMascotImg,
                     title: t.world.houseSquidward,
                     desc: t.world.houseSquidwardDesc,
                   },
                   {
+                    key: 'sandy',
+                    section: 'connection' as AppSection,
+                    img: sandyTreedomeImg,
+                    title: t.world.houseSandy,
+                    desc: t.world.houseSandyDesc,
+                  },
+                  {
+                    key: 'gary',
+                    section: 'configs' as AppSection,
+                    img: garySnailImg,
+                    title: t.world.houseGary,
+                    desc: t.world.houseGaryDesc,
+                  },
+                  {
+                    key: 'plankton',
+                    section: 'settings' as AppSection,
+                    img: planktonChumbucketImg,
+                    title: t.world.housePlankton,
+                    desc: t.world.housePlanktonDesc,
+                  },
+                  {
+                    key: 'sky',
                     section: 'settings' as AppSection,
                     img: spongebobSkyImg,
                     title: t.world.houseSky,
@@ -720,7 +766,7 @@ export const BikiniBottomWorld: React.FC<BikiniBottomWorldProps> = ({
                 ] as const
               ).map((card) => (
                 <button
-                  key={card.section}
+                  key={card.key}
                   type="button"
                   onClick={() => onNavigateSection(card.section)}
                   className="group rounded-2xl overflow-hidden border text-start transition hover:scale-[1.02] cursor-pointer"

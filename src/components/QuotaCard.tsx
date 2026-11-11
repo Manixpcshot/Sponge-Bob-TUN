@@ -46,8 +46,7 @@ export const QuotaCard: React.FC<QuotaCardProps> = ({
       <div
         className="pointer-events-none absolute inset-0"
         style={{
-          background:
-            'linear-gradient(180deg, rgba(16,16,27,0.72) 0%, rgba(16,16,27,0.92) 100%)',
+          background: 'var(--quota-overlay)',
         }}
       />
 

@@ -235,7 +235,7 @@ function createPreviewBridge(): SpongeTunBridge {
     settings: { ...DEFAULT_PREVIEW_SETTINGS },
     updateStatus: {
       stage: 'up-to-date',
-      currentVersion: '1.3.0',
+      currentVersion: '1.3.1',
       releaseUrl: 'https://github.com/Manixpcshot/Sponge-Bob-TUN/releases',
     },
     errorMessage: null,
@@ -269,7 +269,67 @@ function createPreviewBridge(): SpongeTunBridge {
       return { ok: true, serverCount: state.servers.length };
     },
     importFileDialog: async () => ({ ok: false, canceled: true }),
-    importRawPayload: async () => ({ ok: true, serverCount: state.servers.length }),
+    importRawPayload: async (base64OrText, isBase64Bytes) => {
+      let raw = base64OrText.trim();
+      if (isBase64Bytes) {
+        try {
+          const bin = atob(raw);
+          const bytes = new Uint8Array(bin.length);
+          for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+          raw = new TextDecoder().decode(bytes);
+        } catch {
+          raw = '';
+        }
+      }
+      if (!/vless:\/\//i.test(raw)) {
+        try {
+          const decoded = atob(raw.replace(/\s+/g, ''));
+          if (/vless:\/\//i.test(decoded)) raw = decoded;
+        } catch {
+          // ignore
+        }
+      }
+      const lines = raw
+        .split(/\r?\n/)
+        .map((l) => l.trim())
+        .filter((l) => /^vless:\/\//i.test(l));
+      if (lines.length === 0) {
+        return { ok: false, error: 'No valid VLESS configurations were found.' };
+      }
+      const parsed = lines.map((line, idx) => {
+        const hashIdx = line.indexOf('#');
+        let remark = `Imported Node ${idx + 1}`;
+        if (hashIdx >= 0) {
+          try {
+            remark = decodeURIComponent(line.slice(hashIdx + 1)).trim() || remark;
+          } catch {
+            remark = line.slice(hashIdx + 1).trim() || remark;
+          }
+        }
+        return {
+          id: `srv-pasted-${Date.now()}-${idx}`,
+          remark,
+          countryCode: 'UN',
+          countryNameFa: 'سفارشی',
+          countryNameEn: 'Custom',
+          network: 'ws' as const,
+          security: 'tls' as const,
+          isPinned: false,
+          latencyMs: 55 + idx * 14,
+          healthy: true,
+          lastCheckedAt: Date.now(),
+          consecutiveFailures: 0,
+        };
+      });
+      state = {
+        ...state,
+        servers: parsed,
+        selectedServerId: parsed[0]?.id ?? null,
+      };
+      appendLog('info', `Imported ${parsed.length} VLESS node(s)`);
+      emit();
+      return { ok: true, serverCount: parsed.length };
+    },
     exportNpvsDialog: async () => ({ ok: false, canceled: true }),
     clearSubscription: async () => {
       state = { ...state, hasSubscriptionUrl: false, maskedSubscriptionUrl: '', servers: [] };
@@ -295,6 +355,15 @@ function createPreviewBridge(): SpongeTunBridge {
       return state;
     },
     probeLatencies: async () => {
+      state = {
+        ...state,
+        servers: state.servers.map((s, idx) => ({
+          ...s,
+          latencyMs: Math.max(28, Math.round(42 + idx * 17 + (Math.random() * 24 - 12))),
+          healthy: true,
+          lastCheckedAt: Date.now(),
+        })),
+      };
       appendLog('info', `Probed latency for ${state.servers.length} server(s)`);
       emit();
     },

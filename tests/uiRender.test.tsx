@@ -24,7 +24,7 @@ describe('UI Components SSR Verification', () => {
           language={lang}
           theme="obsidian"
           windowState={{ isMaximized: false, isFullScreen: false }}
-          updateStatus={{ stage: 'up-to-date', currentVersion: '1.3.0' }}
+          updateStatus={{ stage: 'up-to-date', currentVersion: '1.3.1' }}
           onToggleTheme={() => {}}
           onToggleLanguage={() => {}}
           onOpenSettings={() => {}}
@@ -66,7 +66,7 @@ describe('UI Components SSR Verification', () => {
             history: [],
           }}
           settings={DEFAULT_SETTINGS}
-          updateStatus={{ stage: 'up-to-date', currentVersion: '1.3.0' }}
+          updateStatus={{ stage: 'up-to-date', currentVersion: '1.3.1' }}
           xrayAvailable={true}
           xrayVersion="v26.11.9"
           logErrorCount={0}
@@ -224,7 +224,7 @@ describe('UI Components SSR Verification', () => {
       <SettingsPanel
         t={t}
         settings={DEFAULT_SETTINGS}
-        updateStatus={{ stage: 'up-to-date', currentVersion: '1.3.0' }}
+        updateStatus={{ stage: 'up-to-date', currentVersion: '1.3.1' }}
         onUpdateSettings={async () => {}}
         onPickMascot={async () => {}}
         onCheckUpdates={async () => {}}
@@ -235,11 +235,16 @@ describe('UI Components SSR Verification', () => {
     expect(settingsHtml).toContain(t.gallery.skyTitle);
     expect(settingsHtml).toContain(t.gallery.dayPanoramaTitle);
     expect(settingsHtml).toContain(t.gallery.jellyfishTitle);
+    expect(settingsHtml).toContain(t.gallery.friendsTitle);
     expect(settingsHtml).toContain(t.gallery.krabbyPattyTitle);
     expect(settingsHtml).toContain(t.gallery.pineappleTitle);
     expect(settingsHtml).toContain(t.gallery.squidwardTitle);
     expect(settingsHtml).toContain(t.gallery.krustyTitle);
     expect(settingsHtml).toContain(t.gallery.patrickTitle);
+    expect(settingsHtml).toContain(t.gallery.garyTitle);
+    expect(settingsHtml).toContain(t.gallery.sandyTitle);
+    expect(settingsHtml).toContain(t.gallery.planktonTitle);
+    expect(settingsHtml).toContain(t.gallery.panoramaTitle);
   });
 
   it('renders crisp SVG flags for countries and Mr. Krabs QuotaCard alert state', () => {
@@ -281,5 +286,6 @@ describe('UI Components SSR Verification', () => {
     );
     expect(quotaHtml).toContain('95%');
     expect(quotaHtml).toContain(t.quota.alert80);
+    expect(quotaHtml).toContain('var(--quota-overlay)');
   });
 });

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   ExternalLink,
@@ -41,6 +41,79 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
     title: string;
   } | null>(null);
 
+  const [socksDraft, setSocksDraft] = useState(String(settings.socksPort));
+  const [httpDraft, setHttpDraft] = useState(String(settings.httpPort));
+  const [latencyDraft, setLatencyDraft] = useState(String(settings.latencyCheckIntervalSec));
+  const [healthDraft, setHealthDraft] = useState(String(settings.healthCheckIntervalSec));
+  const [thresholdDraft, setThresholdDraft] = useState(String(settings.fallbackFailureThreshold));
+
+  useEffect(() => {
+    setSocksDraft(String(settings.socksPort));
+  }, [settings.socksPort]);
+
+  useEffect(() => {
+    setHttpDraft(String(settings.httpPort));
+  }, [settings.httpPort]);
+
+  useEffect(() => {
+    setLatencyDraft(String(settings.latencyCheckIntervalSec));
+  }, [settings.latencyCheckIntervalSec]);
+
+  useEffect(() => {
+    setHealthDraft(String(settings.healthCheckIntervalSec));
+  }, [settings.healthCheckIntervalSec]);
+
+  useEffect(() => {
+    setThresholdDraft(String(settings.fallbackFailureThreshold));
+  }, [settings.fallbackFailureThreshold]);
+
+  useEffect(() => {
+    if (!lightboxItem) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setLightboxItem(null);
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [lightboxItem]);
+
+  const commitPort = (
+    raw: string,
+    key: 'socksPort' | 'httpPort',
+    fallback: number,
+    setDraft: (v: string) => void,
+  ) => {
+    const parsed = Math.trunc(Number(raw));
+    if (!Number.isFinite(parsed) || parsed < 1024 || parsed > 65535) {
+      setDraft(String(fallback));
+      return;
+    }
+    if (parsed !== fallback) {
+      void onUpdateSettings({ [key]: parsed });
+    }
+  };
+
+  const commitBoundedInt = (
+    raw: string,
+    key: 'latencyCheckIntervalSec' | 'healthCheckIntervalSec' | 'fallbackFailureThreshold',
+    min: number,
+    max: number,
+    fallback: number,
+    setDraft: (v: string) => void,
+  ) => {
+    const parsed = Math.trunc(Number(raw));
+    if (!Number.isFinite(parsed)) {
+      setDraft(String(fallback));
+      return;
+    }
+    const clamped = Math.max(min, Math.min(max, parsed));
+    setDraft(String(clamped));
+    if (clamped !== fallback) {
+      void onUpdateSettings({ [key]: clamped });
+    }
+  };
+
   const getArtworkTitle = (id: BikiniBottomArtworkItem['id']): string => {
     switch (id) {
       case 'sky':
@@ -49,6 +122,8 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
         return t.gallery.dayPanoramaTitle;
       case 'jellyfish':
         return t.gallery.jellyfishTitle;
+      case 'friends':
+        return t.gallery.friendsTitle;
       case 'krabbyPatty':
         return t.gallery.krabbyPattyTitle;
       case 'sponge':
@@ -63,6 +138,12 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
         return t.gallery.krustyTitle;
       case 'patrick':
         return t.gallery.patrickTitle;
+      case 'gary':
+        return t.gallery.garyTitle;
+      case 'sandy':
+        return t.gallery.sandyTitle;
+      case 'plankton':
+        return t.gallery.planktonTitle;
       case 'panorama':
         return t.gallery.panoramaTitle;
     }
@@ -330,10 +411,16 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
                   type="number"
                   min={1024}
                   max={65535}
-                  value={settings.socksPort}
-                  onChange={(e) =>
-                    void onUpdateSettings({ socksPort: Number(e.target.value) || 10808 })
+                  value={socksDraft}
+                  onChange={(e) => setSocksDraft(e.target.value)}
+                  onBlur={() =>
+                    commitPort(socksDraft, 'socksPort', settings.socksPort, setSocksDraft)
                   }
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      commitPort(socksDraft, 'socksPort', settings.socksPort, setSocksDraft);
+                    }
+                  }}
                   className="w-full h-9 rounded-lg px-3 text-xs font-mono border outline-none"
                   style={{
                     backgroundColor: 'var(--bg-input)',
@@ -353,10 +440,16 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
                   type="number"
                   min={1024}
                   max={65535}
-                  value={settings.httpPort}
-                  onChange={(e) =>
-                    void onUpdateSettings({ httpPort: Number(e.target.value) || 10809 })
+                  value={httpDraft}
+                  onChange={(e) => setHttpDraft(e.target.value)}
+                  onBlur={() =>
+                    commitPort(httpDraft, 'httpPort', settings.httpPort, setHttpDraft)
                   }
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      commitPort(httpDraft, 'httpPort', settings.httpPort, setHttpDraft);
+                    }
+                  }}
                   className="w-full h-9 rounded-lg px-3 text-xs font-mono border outline-none"
                   style={{
                     backgroundColor: 'var(--bg-input)',
@@ -378,12 +471,30 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
                   type="number"
                   min={15}
                   max={600}
-                  value={settings.latencyCheckIntervalSec}
-                  onChange={(e) =>
-                    void onUpdateSettings({
-                      latencyCheckIntervalSec: Math.max(15, Number(e.target.value) || 45),
-                    })
+                  value={latencyDraft}
+                  onChange={(e) => setLatencyDraft(e.target.value)}
+                  onBlur={() =>
+                    commitBoundedInt(
+                      latencyDraft,
+                      'latencyCheckIntervalSec',
+                      15,
+                      600,
+                      settings.latencyCheckIntervalSec,
+                      setLatencyDraft,
+                    )
                   }
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      commitBoundedInt(
+                        latencyDraft,
+                        'latencyCheckIntervalSec',
+                        15,
+                        600,
+                        settings.latencyCheckIntervalSec,
+                        setLatencyDraft,
+                      );
+                    }
+                  }}
                   className="w-full h-8 rounded-lg px-2.5 text-xs font-mono border outline-none"
                   style={{
                     backgroundColor: 'var(--bg-input)',
@@ -403,12 +514,30 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
                   type="number"
                   min={5}
                   max={120}
-                  value={settings.healthCheckIntervalSec}
-                  onChange={(e) =>
-                    void onUpdateSettings({
-                      healthCheckIntervalSec: Math.max(5, Number(e.target.value) || 15),
-                    })
+                  value={healthDraft}
+                  onChange={(e) => setHealthDraft(e.target.value)}
+                  onBlur={() =>
+                    commitBoundedInt(
+                      healthDraft,
+                      'healthCheckIntervalSec',
+                      5,
+                      120,
+                      settings.healthCheckIntervalSec,
+                      setHealthDraft,
+                    )
                   }
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      commitBoundedInt(
+                        healthDraft,
+                        'healthCheckIntervalSec',
+                        5,
+                        120,
+                        settings.healthCheckIntervalSec,
+                        setHealthDraft,
+                      );
+                    }
+                  }}
                   className="w-full h-8 rounded-lg px-2.5 text-xs font-mono border outline-none"
                   style={{
                     backgroundColor: 'var(--bg-input)',
@@ -428,12 +557,30 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
                   type="number"
                   min={1}
                   max={10}
-                  value={settings.fallbackFailureThreshold}
-                  onChange={(e) =>
-                    void onUpdateSettings({
-                      fallbackFailureThreshold: Math.max(1, Math.min(10, Number(e.target.value) || 3)),
-                    })
+                  value={thresholdDraft}
+                  onChange={(e) => setThresholdDraft(e.target.value)}
+                  onBlur={() =>
+                    commitBoundedInt(
+                      thresholdDraft,
+                      'fallbackFailureThreshold',
+                      1,
+                      10,
+                      settings.fallbackFailureThreshold,
+                      setThresholdDraft,
+                    )
                   }
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      commitBoundedInt(
+                        thresholdDraft,
+                        'fallbackFailureThreshold',
+                        1,
+                        10,
+                        settings.fallbackFailureThreshold,
+                        setThresholdDraft,
+                      );
+                    }
+                  }}
                   className="w-full h-8 rounded-lg px-2.5 text-xs font-mono border outline-none"
                   style={{
                     backgroundColor: 'var(--bg-input)',

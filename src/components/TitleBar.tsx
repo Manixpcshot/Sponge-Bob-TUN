@@ -59,7 +59,10 @@ export const TitleBar: React.FC<TitleBarProps> = ({
   return (
     <header
       dir="ltr"
-      onDoubleClick={onToggleMaximize}
+      onDoubleClick={(e) => {
+        if ((e.target as HTMLElement).closest('button')) return;
+        onToggleMaximize();
+      }}
       className="drag-region relative z-40 flex items-center justify-between h-12 px-3 border-b backdrop-blur-xl select-none shrink-0"
       style={{
         backgroundColor: 'var(--bg-surface)',
